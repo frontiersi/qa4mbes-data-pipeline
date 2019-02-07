@@ -9,7 +9,7 @@ JSON format test result ideas for QA4MBES.
 
 ```
 {
-  "testdate": "unixdatetimestamp"
+  "testdate": "unixdatetimestamp",
   "plannedcoverage": {GeoJSON},
   "inputswath": "file.ascii",
   "percentcoverage": 99.5,
@@ -28,7 +28,7 @@ JSON format test result ideas for QA4MBES.
 
 ```
 {
-  "testdate": "unixdatetimestamp"
+  "testdate": "unixdatetimestamp",
   "inputswath": "file.ascii",
   "swatharea": 999999.99,
   "points": 99999,
