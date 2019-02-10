@@ -13,4 +13,4 @@ A proof of concept of a data pipeline for quality assurance.
 ## Structure of this repository
 `./doc` contains documentation as markdown
 `./tests` will contain some sample data snippets and Python code to run standard tests.
-`./qa4mbes` contains python code to run QA pipelines
+`./qa4mbes` contains python code to run QA 

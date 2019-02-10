@@ -1,0 +1,5 @@
+#QA4MBES python requirements
+
+shapely
+pdal > 1.6
+utm

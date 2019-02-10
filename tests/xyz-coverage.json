@@ -1,0 +1,14 @@
+{
+  "pipeline": [
+        {
+            "type": "readers.text",
+            "header": "X\tY\tZ\tFlightllineID\tIntensity",
+            "spatialreference": "EPSG:4326"
+        },
+        {
+            "type": "filters.hexbin",
+            "threshold": 1,
+            "sample_size": 10000
+        }
+        ]
+}
