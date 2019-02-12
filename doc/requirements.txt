@@ -1,5 +1,6 @@
-#QA4MBES python requirements
+# QA4MBES python requirements
 
 shapely
+fiona
 pdal > 1.6
 utm

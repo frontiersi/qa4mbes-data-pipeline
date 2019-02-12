@@ -11,11 +11,12 @@ from argparse import ArgumentParser
 
 #additional parts
 from shapely import geometry
+import fiona
 
 #bespoke QA4MBES
 import getpointcoverage
 import getgridcoverage
-import shapelify
+import shapelyify
 
 
 def testcoverage(surveyswath, planningpolygon):
@@ -40,19 +41,17 @@ def testcoverage(surveyswath, planningpolygon):
         surveycoverage = getgridcoverage.bagcoverage(surveyswath)
 
     #create a shapely geometry from the returned survey coverage JSON
-    surveygeometry = getcoverate.shapelyify(surveycoverage)
+    surveygeometry = shapelyify(surveycoverage)
 
     # is input coverage a file or polygon? let's start at file, and choose
     # .shp or GeoJSON... return a shapely geometry
     if (re.search("*\.shp$", planningpolygon)):
-        surveycoverage = getcoverage.getshp(planningpolygon)
+        surveycoverage = getvectorcoverage.getshp(planningpolygon)
 
     elif (re.search("*\.las|\.laz$", planningpolygon)):
-        surveycoverage = getcoverage.getjson(planningpolygon)
+        surveycoverage = getvectorcoverage.getjson(planningpolygon)
 
     # compute the intersection of the test and swath geometry
-
-
 
 
 
@@ -61,9 +60,6 @@ def testcoverage(surveyswath, planningpolygon):
     #return a dictionary, ready to write out as JSON
     return testdata
 
-
-
-if __name__ == "__main__":
 
     parser = ArgumentParser()
     parser.add_argument("-i", "--input-file",
