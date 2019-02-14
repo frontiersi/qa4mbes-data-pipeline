@@ -10,12 +10,12 @@ JSON format test result ideas for QA4MBES.
 ```
 {
   "testdate": "unixdatetimestamp",
-  "plannedcoverage": {GeoJSON},
-  "inputswath": "file.ascii",
-  "percentcoverage": 99.5,
-  "centroiddistance": 99999,
+  "plannedcoverage": filename,
+  "inputswath": "filename",
+  "percentcovered": 99.5 (or None),
+  "areacovered": 99999 (or None),
   "coverage": {
-    "planned": {geoJSON ploygon}.
+    "planned": {geoJSON polygon}.
 
     "swath": {geoJSON polygon or multiploygon},
 
