@@ -25,6 +25,7 @@ import utm
 #bespoke QA4MBES
 import getpointcoverage
 import getgridcoverage
+import getvectorcoverage
 
 def transformtoutm(geometry):
     #lazily assume input geometry is latlon/EPSG:4326
@@ -38,7 +39,7 @@ def transformtoutm(geometry):
     project = partial(
     pyproj.transform,
     pyproj.Proj(init='epsg:4326'), # source coordinate system
-    pyproj.Proj(init=epsgcode) # destination coordinate system
+    pyproj.Proj(init=epsgcode)) # destination coordinate system
 
     return transform(project, geometry)
 
@@ -67,49 +68,51 @@ def testcoverage(surveyswath, planningpolygon):
     """
 
     #this may take a while, and return a...
-    if (re.search("*\.xyz$", surveyswath)):
+    if (re.search(".*\.xyz$", surveyswath)):
         #returns a WKT string
         surveycoverage = getpointcoverage.xyzcoverage(surveyswath)
 
-    elif (re.search("*\.las|\.laz$", surveyswath)):
+    elif (re.search(".*\.las|\.laz$", surveyswath)):
         #returns a wkt string
         surveycoverage = getpointcoverage.lascoverage(surveyswath)
 
-    elif (re.search("*\.tif|\.TIF|\.tiff$", surveyswath)):
+    elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
         surveycoverage = getgridcoverage.tifcoverage(surveyswath)
 
-    else (re.search("*\.bag|.BAG$", surveyswath)):
+    elif (re.search(".*\.bag|.BAG$", surveyswath)):
         surveycoverage = getgridcoverage.bagcoverage(surveyswath)
 
     # is input coverage a file or polygon? let's start at file, and choose
     # .shp or GeoJSON... return a shapely geometry
-    if (re.search("*\.shp$", planningpolygon)):
-        planningcoverage = getvectorcoverage.getshp(planningpolygon)
+    if (re.search(".*\.shp$", planningpolygon)):
+        planningcoverage = getvectorcoverage.shpcoverage(planningpolygon)
 
-    elif (re.search("*\.las|\.laz$", planningpolygon)):
-        planningcoverage = getvectorcoverage.getjson(planningpolygon)
+    elif (re.search(".*\.las|\.laz$", planningpolygon)):
+        planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
 
     # compute the intersection of the test and swath geometry
 
-    testcentroid = planningcoverage.centroid().xy
+    testcentroid = planningcoverage.centroid.xy
 
-    surveycentroid = surveycoverage.centroid().xy
+    surveycentroid = surveycoverage.centroid.xy
 
     if (planningcoverage.intersects(surveycoverage)):
         #coverages intersect, compute the area of intersection
         intersects = True
         intersection = planningcoverage.intersection(surveycoverage)
-        intersectionaswkt = intersection.wkt()
+        intersectionaswkt = intersection.wkt
 
         #intersection might be in EPSG:4326, but we want stats in metres so:
-
+        intersectstats = intersectinmetres(planningcoverage, surveycoverage)
         #convert the intersection to a relevant UTM zone based on test poly
-        intersectionarea = area(intersection,testcentroid)
+        intersectionarea = intersectstats[0]
+        percentcoverage = intersectstats[1]
 
     else:
         intersects = False
         intersectionaswkt = None
         intersectionarea = None
+        percentcoverage = None
     #return a dictionary, ready to write out as JSON
     testdata = {
                 "testdate":datetime.datetime.now(),
@@ -143,7 +146,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     inputfile = vars(args)["input_file"]
-    referencepolygon = vars(args)["referencpolygon"]
+    referencepolygon = vars(args)["referencepolygon"]
 
     testdata = testcoverage(inputfile, referencepolygon)
     # spit JSON to stdout as a CLI output
