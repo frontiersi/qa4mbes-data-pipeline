@@ -8,13 +8,15 @@ Functions to generate JSON geometries from:
 #standard library
 import os
 import json
+import geojson
 import re
 
 #do we need to parse arguments...
 from argparse import ArgumentParser
 
 import fiona
-import shapely
+from shapely import geometry, wkt
+from shapely.geometry import shape
 
 def shpcoverage(inputfile):
     """
@@ -22,12 +24,12 @@ def shpcoverage(inputfile):
     Return a geometry useful to shapely
     """
 
-    #run PDAL
-    metadata = runpdal(pipeline)
-    #print(metadata)
-    coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
     #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
+    with fiona.open(inputfile, 'r') as shapefile:
+        geometry = shapefile[0]["geometry"]
 
+    coverage = shape(geojson.loads(str(json.dumps(geometry))))
+    
     return coverage
 
 
@@ -43,17 +45,17 @@ def jsoncoverage(inputfile):
 
     return coverage
 
-def getpointcoverage(surveyswath):
+def getvectorcoverage(testpolygon):
     """
     function to provide a CLI app - check file extension,
     choose a coverage exractor, return a JSON coverage
     """
-    if (re.search(".*\.shp$", surveyswath)):
-        print("running xyzcoverage")
-        testcoverage = xyzcoverage(surveyswath)
-    elif (re.search(".*\.json$", surveyswath)):
-        print("running lascoverage")
-        testcoverage = lascoverage(surveyswath)
+    if (re.search(".*\.shp$", testpolygon)):
+        print("running shpcoverage")
+        testcoverage = shpcoverage(testpolygon)
+    elif (re.search(".*\.json$", testpolygon)):
+        print("running jsoncoverage")
+        testcoverage = jsoncoverage(testpolygon)
     else:
         print("please provide an ESRI shapefile or GeoJSON file")
         return

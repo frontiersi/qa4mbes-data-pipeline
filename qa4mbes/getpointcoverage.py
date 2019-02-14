@@ -11,6 +11,7 @@ See (TBD) for gridded coverage tooling (TIFF/BAG)
 import os
 import json
 import re
+from shapely import wkt
 
 #do we need to parse arguments...
 from argparse import ArgumentParser
@@ -64,7 +65,7 @@ def xyzcoverage(inputfile):
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
     #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
     #coverage = metadata
-    return coverage
+    return wkt.loads(coverage)
 
 def lascoverage(inputfile):
     """
@@ -93,7 +94,7 @@ def lascoverage(inputfile):
     metadata = runpdal(pipeline)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
 
-    return coverage
+    return wkt.loads(coverage)
 
 # ...if laz/las:["metadata"]["filters.hexbin"][0]["boundary"]
 

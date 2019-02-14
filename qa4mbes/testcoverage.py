@@ -3,26 +3,59 @@
 #standard library
 import os #find files
 import json #do json things
+import geojson #do geojson things
 import re   #regexp
+import datetime
 
 #do we need to parse arguments...
 # yes! if we're calling from the CLI
 from argparse import ArgumentParser
 
 #additional parts
-from shapely import geometry
+from shapely import geometry, wkt
+from shapely.geometry import shape
+from shapely.ops import transform
+
 import fiona
+
+from functools import partial
+import pyproj
+import utm
 
 #bespoke QA4MBES
 import getpointcoverage
 import getgridcoverage
-import shapelyify
 
+def transformtoutm(geometry):
+    #lazily assume input geometry is latlon/EPSG:4326
+    refpoint = geometry.centroid.xy
+    utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
+    if refpoint[1][0] > 0:
+        epsgcode = 'epsg:326'+str(utmzone[2])
+    else:
+        epsgcode = 'epsg:327'+str(utmzone[2])
+    # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
+    project = partial(
+    pyproj.transform,
+    pyproj.Proj(init='epsg:4326'), # source coordinate system
+    pyproj.Proj(init=epsgcode) # destination coordinate system
 
-def intersectiontest():
+    return transform(project, geometry)
 
+def intersectinmetres(refgeom, testgeom):
+    """
+    give two geometries which intersect, transform to utm,
+    return area in square metres, and percent coverage
+    """
+    utmref = transformtoutm(refgeom)
+    utmtest = transformtoutm(testgeom)
 
-    return
+    intersection = utmref.intersection(utmtest)
+
+    intersectionarea = intersection.area
+    intersectionpercent = intersection.area / utmref.area
+
+    return [intersectionarea, intersectionpercent]
 
 
 def testcoverage(surveyswath, planningpolygon):
@@ -48,9 +81,6 @@ def testcoverage(surveyswath, planningpolygon):
     else (re.search("*\.bag|.BAG$", surveyswath)):
         surveycoverage = getgridcoverage.bagcoverage(surveyswath)
 
-    #create a shapely geometry from the returned survey coverage JSON
-    surveygeometry = shapelyify(surveycoverage)
-
     # is input coverage a file or polygon? let's start at file, and choose
     # .shp or GeoJSON... return a shapely geometry
     if (re.search("*\.shp$", planningpolygon)):
@@ -61,22 +91,40 @@ def testcoverage(surveyswath, planningpolygon):
 
     # compute the intersection of the test and swath geometry
 
-    testcentroid = planningcoverage.centroid()
+    testcentroid = planningcoverage.centroid().xy
 
-    surveycentroid = surveycoverage.centroid()
+    surveycentroid = surveycoverage.centroid().xy
 
     if (planningcoverage.intersects(surveycoverage)):
         #coverages intersect, compute the area of intersection
         intersects = True
-        intersection =
+        intersection = planningcoverage.intersection(surveycoverage)
+        intersectionaswkt = intersection.wkt()
+
+        #intersection might be in EPSG:4326, but we want stats in metres so:
+
+        #convert the intersection to a relevant UTM zone based on test poly
+        intersectionarea = area(intersection,testcentroid)
+
     else:
         intersects = False
-        intersection = None
+        intersectionaswkt = None
         intersectionarea = None
-
-
-
     #return a dictionary, ready to write out as JSON
+    testdata = {
+                "testdate":datetime.datetime.now(),
+                "plannedcoverage": planningpolygon,
+                "testswath": surveyswath,
+                "percentcovered": percentcoverage,
+                "areacovered": intersectionarea,
+                "coverages":{
+                    "planned": {planningcoverage.wkt},
+                    "swath": {surveycoverage.wkt},
+                    "intersection":{intersectionaswkt}
+                    }
+
+                }
+
     return testdata
 
 if __name__ == "__main__":
