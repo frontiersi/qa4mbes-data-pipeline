@@ -63,9 +63,8 @@ def xyzcoverage(inputfile):
     #print(metadata)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
     #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
-
+    #coverage = metadata
     return coverage
-
 
 def lascoverage(inputfile):
     """
@@ -116,10 +115,10 @@ def getpointcoverage(surveyswath):
     choose a coverage exractor, return a JSON coverage
     """
     if (re.search(".*\.xyz$", surveyswath)):
-        print("running xyzcoverage")
+        #print("running xyzcoverage")
         surveycoverage = xyzcoverage(surveyswath)
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        print("running lascoverage")
+        #print("running lascoverage")
         surveycoverage = lascoverage(surveyswath)
     else:
         print("please provide an ungridded .xyz or .las/laz file")
@@ -139,4 +138,5 @@ if __name__ == "__main__":
 
     inputfile = vars(args)["input_file"]
 
-    getpointcoverage(inputfile)
+    coverage = getpointcoverage(inputfile)
+    print(coverage)

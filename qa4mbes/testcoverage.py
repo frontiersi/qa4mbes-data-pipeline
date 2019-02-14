@@ -19,6 +19,12 @@ import getgridcoverage
 import shapelyify
 
 
+def intersectiontest():
+
+
+    return
+
+
 def testcoverage(surveyswath, planningpolygon):
     """
     Given an OGR-compatible polygon and a survey swath file name, return:
@@ -29,9 +35,11 @@ def testcoverage(surveyswath, planningpolygon):
 
     #this may take a while, and return a...
     if (re.search("*\.xyz$", surveyswath)):
+        #returns a WKT string
         surveycoverage = getpointcoverage.xyzcoverage(surveyswath)
 
     elif (re.search("*\.las|\.laz$", surveyswath)):
+        #returns a wkt string
         surveycoverage = getpointcoverage.lascoverage(surveyswath)
 
     elif (re.search("*\.tif|\.TIF|\.tiff$", surveyswath)):
@@ -46,21 +54,34 @@ def testcoverage(surveyswath, planningpolygon):
     # is input coverage a file or polygon? let's start at file, and choose
     # .shp or GeoJSON... return a shapely geometry
     if (re.search("*\.shp$", planningpolygon)):
-        surveycoverage = getvectorcoverage.getshp(planningpolygon)
+        planningcoverage = getvectorcoverage.getshp(planningpolygon)
 
     elif (re.search("*\.las|\.laz$", planningpolygon)):
-        surveycoverage = getvectorcoverage.getjson(planningpolygon)
+        planningcoverage = getvectorcoverage.getjson(planningpolygon)
 
     # compute the intersection of the test and swath geometry
 
+    testcentroid = planningcoverage.centroid()
 
+    surveycentroid = surveycoverage.centroid()
+
+    if (planningcoverage.intersects(surveycoverage)):
+        #coverages intersect, compute the area of intersection
+        intersects = True
+        intersection =
+    else:
+        intersects = False
+        intersection = None
+        intersectionarea = None
 
 
 
     #return a dictionary, ready to write out as JSON
     return testdata
 
-
+if __name__ == "__main__":
+    # cli handling parts -
+    # accept a test and reference polygon
     parser = ArgumentParser()
     parser.add_argument("-i", "--input-file",
                         help="input filename for coverage extraction")
@@ -76,4 +97,6 @@ def testcoverage(surveyswath, planningpolygon):
     inputfile = vars(args)["input_file"]
     referencepolygon = vars(args)["referencpolygon"]
 
-    testcoverage(inputfile, referencepolygon)
+    testdata = testcoverage(inputfile, referencepolygon)
+    # spit JSON to stdout as a CLI output
+    print(testdata)
