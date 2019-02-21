@@ -1,6 +1,9 @@
-# QA4MBES python requirements
+# QA4MBES python requirements from outside the py3.7 standard library
 
 shapely
 fiona
+rasterio
+numpy
 pdal > 1.6
 utm
+pyproj
