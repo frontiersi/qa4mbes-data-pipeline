@@ -23,9 +23,9 @@ import pyproj
 import utm
 
 #bespoke QA4MBES
+import getvectorcoverage
 import getpointcoverage
 import getgridcoverage
-import getvectorcoverage
 
 def transformtoutm(geometry):
     #lazily assume input geometry is latlon/EPSG:4326
@@ -45,16 +45,13 @@ def transformtoutm(geometry):
 
 def intersectinmetres(refgeom, testgeom):
     """
-    give two geometries which intersect, transform to utm,
-    return area in square metres, and percent coverage
+    give two geometries which intersect
+    return area in geometry units, and percent coverage
     """
-    utmref = transformtoutm(refgeom)
-    utmtest = transformtoutm(testgeom)
-
-    intersection = utmref.intersection(utmtest)
+    intersection = refgeom.intersection(testgeom)
 
     intersectionarea = intersection.area
-    intersectionpercent = intersection.area / utmref.area
+    intersectionpercent = intersection.area / refgeom.area
 
     return [intersectionarea, intersectionpercent]
 
@@ -62,15 +59,17 @@ def intersectinmetres(refgeom, testgeom):
 def testcoverage(surveyswath, planningpolygon):
     """
     Given an OGR-compatible polygon and a survey swath file name, return:
-    - % of reference polygon covered by survey
+    - percentage of reference polygon covered by survey
     - GeoJSON polygon describing intersection of reference and survey
     - distance between reference and test coverage centroids, in metres
     """
 
+    teststart = datetime.datetime.now()
+
     #this may take a while, and return a...
     if (re.search(".*\.xyz$", surveyswath)):
         #returns a WKT string
-        surveycoverage = getpointcoverage.xyzcoverage(surveyswath)
+        surveycoverage = getpointcoverage.getpointcoverage(surveyswath)
 
     elif (re.search(".*\.las|\.laz$", surveyswath)):
         #returns a wkt string
@@ -96,36 +95,46 @@ def testcoverage(surveyswath, planningpolygon):
 
     surveycentroid = surveycoverage.centroid.xy
 
+    #convert the intersection to a relevant UTM zone based on test poly
+    utmplanned = transformtoutm(planningcoverage)
+    utmsurvey = transformtoutm(surveycoverage)
+
+    #compute centroid distance in metres regardless of intersection
+    centroiddistance = utmplanned.centroid.distance(utmsurvey.centroid)
+    minimumdistance = utmplanned.distance(utmsurvey)
+
+
     if (planningcoverage.intersects(surveycoverage)):
         #coverages intersect, compute the area of intersection
         intersects = True
         intersection = planningcoverage.intersection(surveycoverage)
-        intersectionaswkt = intersection.wkt
+        #intersectionaswkt = intersection.wkt
+        intersectionasjson = geojson.dumps(intersection)
 
         #intersection might be in EPSG:4326, but we want stats in metres so:
-        intersectstats = intersectinmetres(planningcoverage, surveycoverage)
-        #convert the intersection to a relevant UTM zone based on test poly
+        intersectstats = intersectinmetres(utmplanned, utmsurvey)
+
         intersectionarea = intersectstats[0]
         percentcoverage = intersectstats[1]
 
     else:
         intersects = False
-        intersectionaswkt = None
+        intersectionasjson = None
         intersectionarea = None
         percentcoverage = None
+
+    teststop = datetime.datetime.now()
     #return a dictionary, ready to write out as JSON
     testdata = {
-                "testdate":datetime.datetime.now(),
+                "teststart":str(teststart.isoformat()),
+                "teststop":str(teststop.isoformat()),
                 "plannedcoverage": planningpolygon,
                 "testswath": surveyswath,
                 "percentcovered": percentcoverage,
                 "areacovered": intersectionarea,
-                "coverages":{
-                    "planned": {planningcoverage.wkt},
-                    "swath": {surveycoverage.wkt},
-                    "intersection":{intersectionaswkt}
-                    }
-
+                "centroiddistance": centroiddistance,
+                "minimindistance": minimumdistance,
+                "intersection":intersectionasjson
                 }
 
     return testdata
