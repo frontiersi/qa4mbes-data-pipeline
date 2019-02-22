@@ -5,18 +5,19 @@ Functions to generate JSON geometries from:
 - GeoJSON polygons
 
 """
-#standard library
+# standard library
 import os
 import json
 import geojson
 import re
 
-#do we need to parse arguments...
+# do we need to parse arguments...
 from argparse import ArgumentParser
 
 import fiona
 from shapely import geometry, wkt
 from shapely.geometry import shape
+
 
 def shpcoverage(inputfile):
     """
@@ -36,14 +37,15 @@ def shpcoverage(inputfile):
 def jsoncoverage(inputfile):
     """
     Provide a GeoJSON file
-    Return a geometry useful to shapely
+    Return its geometry
     """
+    with fiona.open(inputfile, 'r') as jsonfile:
+        geometry = jsonfile[0]["geometry"]
 
-    #run PDAL
-    metadata = runpdal(pipeline)
-    coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
+    coverage = str(json.dumps(geometry))
 
     return coverage
+
 
 def getvectorcoverage(testpolygon):
     """
@@ -52,7 +54,7 @@ def getvectorcoverage(testpolygon):
     """
     if (re.search(".*\.shp$", testpolygon)):
         testcoverage = shpcoverage(testpolygon)
-    elif (re.search(".*\.json$", testpolygon)):
+    elif (re.search(".*\.json|\.geojson$", testpolygon)):
         testcoverage = jsoncoverage(testpolygon)
     else:
         print("please provide an ESRI shapefile or GeoJSON file")
@@ -65,7 +67,7 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
     parser.add_argument("-i", "--input-file",
-                    help="test geometry input filename (.shp or .json)")
+                        help="test geometry input filename (.shp or .json)")
 
     # unpack arguments
     args = parser.parse_args()

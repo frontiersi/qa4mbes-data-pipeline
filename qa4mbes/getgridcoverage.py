@@ -7,15 +7,15 @@ Usually using LAS/LAZ or xyz files as input.
 See (TBD) for gridded coverage tooling (TIFF/BAG)
 
 """
-#standard library
+# standard library
 import os
 import json
 import re
 
-#do we need to parse arguments...
+# do we need to parse arguments...
 from argparse import ArgumentParser
 
-#all the geospatial libraries
+# all the geospatial libraries
 from shapely import geometry, wkt
 from shapely.geometry import shape
 from shapely.ops import transform, cascaded_union
@@ -37,28 +37,28 @@ def xyzcoverage(inputfile, header="X\tY\t\Z\tFlightllineID\tIntensity"):
     and return a GeoJSON polygon
     """
 
-    #define a pipeline template
+    # define a pipeline template
     # to do: inspect the data format from line 1
     # of the input file and construct 'header' appropriately
     # OR take a header argument...
     pipeline = {
         "pipeline": [
             {
-            "type": "readers.text",
-            "header": header,
-            "spatialreference": "EPSG:4326",
-            "filename": inputfile
+                "type": "readers.text",
+                "header": header,
+                "spatialreference": "EPSG:4326",
+                "filename": inputfile
             },
             {
-            "type": "filters.hexbin",
-            "threshold":1
+                "type": "filters.hexbin",
+                "threshold": 1
             }
         ]
-        }
+    }
 
-    #run PDAL
+    # run PDAL
     metadata = runpdal(pipeline)
-    #print(metadata)
+    # print(metadata)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
     #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
 
@@ -77,7 +77,6 @@ def tiffcoverage(inputfile):
     boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
     multipoly = cascaded_union(listofpolygons[:-1])
 
-
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
 
     return coverage
@@ -95,6 +94,7 @@ def tiffcoverage(inputfile):
 # use shapely to transform the bbox
 
 # ...and then estimate the density based on npoints / area (in utm)
+
 
 def getpointcoverage(surveyswath):
     """
@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
     parser.add_argument("-i", "--input-file",
-                    help="input file for coverage extraction")
+                        help="input file for coverage extraction")
 
     # unpack arguments
     args = parser.parse_args()
