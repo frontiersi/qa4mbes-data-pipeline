@@ -15,27 +15,25 @@ import re
 #do we need to parse arguments...
 from argparse import ArgumentParser
 
-#needs pdal
+#all the geospatial libraries
+from shapely import geometry, wkt
+from shapely.geometry import shape
+from shapely.ops import transform, cascaded_union
+
+import rasterio
+from rasterio import features
+
 import pdal
 
-def mbioreadable():
-    return True
 
-def runpdal(pipeline):
-    pipeline = pdal.Pipeline(json.dumps(pipeline))
-    pipeline.validate()
-    pipeline.loglevel = 2 #stay quiet
-    count = pipeline.execute()
-    metadata = json.loads(pipeline.metadata)
-    log = pipeline.log
-
-    return metadata
-
-def xyzcoverage(inputfile):
+def xyzcoverage(inputfile, header="X\tY\t\Z\tFlightllineID\tIntensity"):
     """
-    Provide a file name with extension:
-    - xyz
-    ...extract a tight polygon around the XY points in the file
+    Provide a delimited ASCII file with at least X Y and Z coordinates
+
+    Optionally provide a header line for the input data schema
+    ...and a CRS as EPSG code
+
+    ...extract a tight polygon around data points in the file
     and return a GeoJSON polygon
     """
 
@@ -47,7 +45,7 @@ def xyzcoverage(inputfile):
         "pipeline": [
             {
             "type": "readers.text",
-            "header": "X\tY\tZ\tFlightllineID\tIntensity",
+            "header": header,
             "spatialreference": "EPSG:4326",
             "filename": inputfile
             },
@@ -67,31 +65,19 @@ def xyzcoverage(inputfile):
     return coverage
 
 
-def lascoverage(inputfile):
+def tiffcoverage(inputfile):
     """
-    Provide a file name with extension:
-    - las
-    - laz
+    Provide a valid geotiff file name with extension:
+    -tiff/tif/TIFF/TIF
     ...extract a tight polygon around the XY points in the file
     and return a GeoJSON polygon
+
     """
+    dataset = rasterio.open(inputfile)
+    boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
+    multipoly = cascaded_union(listofpolygons[:-1])
 
-    #define a pipeline
-    pipeline = {
-        "pipeline": [
-            {
-            "type": "readers.las",
-            "filename": inputfile
-            },
-            {
-            "type": "filters.hexbin",
-            "threshold":1
-            }
-        ]
-        }
 
-    #run PDAL
-    metadata = runpdal(pipeline)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
 
     return coverage

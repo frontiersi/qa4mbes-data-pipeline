@@ -10,14 +10,15 @@ See (TBD) for gridded coverage tooling (TIFF/BAG)
 #standard library
 import os
 import json
+import geojson
 import re
-from shapely import wkt
 
 #do we need to parse arguments...
 from argparse import ArgumentParser
 
-#needs pdal
+#needs pdal and shapely.wkt
 import pdal
+from shapely import wkt
 
 def mbioreadable():
     return True
@@ -61,11 +62,13 @@ def xyzcoverage(inputfile):
 
     #run PDAL
     metadata = runpdal(pipeline)
-    #print(metadata)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
-    #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
-    #coverage = metadata
-    return wkt.loads(coverage)
+
+    #gymnastics to convert from PDAL wkt to geoJSON
+    coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
+    coverage = geojson.dumps(coverage)
+
+    return coverage
 
 def lascoverage(inputfile):
     """
@@ -92,9 +95,11 @@ def lascoverage(inputfile):
 
     #run PDAL
     metadata = runpdal(pipeline)
-    coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
+    #gymnastics to convert from PDAL wkt to geoJSON
+    coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
+    coverage = geojson.dumps(coverage)
 
-    return wkt.loads(coverage)
+    return coverage
 
 # ...if laz/las:["metadata"]["filters.hexbin"][0]["boundary"]
 
@@ -122,7 +127,7 @@ def getpointcoverage(surveyswath):
         #print("running lascoverage")
         surveycoverage = lascoverage(surveyswath)
     else:
-        print("please provide an ungridded .xyz or .las/laz file")
+        print("please provide an ASCII .xyz or .las/laz file")
         return
 
     return surveycoverage

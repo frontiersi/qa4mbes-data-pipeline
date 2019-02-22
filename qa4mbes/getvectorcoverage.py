@@ -28,8 +28,8 @@ def shpcoverage(inputfile):
     with fiona.open(inputfile, 'r') as shapefile:
         geometry = shapefile[0]["geometry"]
 
-    coverage = shape(geojson.loads(str(json.dumps(geometry))))
-    
+    coverage = str(json.dumps(geometry))
+
     return coverage
 
 
@@ -51,10 +51,8 @@ def getvectorcoverage(testpolygon):
     choose a coverage exractor, return a JSON coverage
     """
     if (re.search(".*\.shp$", testpolygon)):
-        print("running shpcoverage")
         testcoverage = shpcoverage(testpolygon)
     elif (re.search(".*\.json$", testpolygon)):
-        print("running jsoncoverage")
         testcoverage = jsoncoverage(testpolygon)
     else:
         print("please provide an ESRI shapefile or GeoJSON file")

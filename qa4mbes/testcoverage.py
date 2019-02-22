@@ -55,6 +55,13 @@ def intersectinmetres(refgeom, testgeom):
 
     return [intersectionarea, intersectionpercent]
 
+def jsontoshapely(coverage):
+    """
+    give a valid GeoJSON string, return a shapely geometry
+    """
+    coverage = geojson.loads(coverage)
+    return shape(coverage)
+
 
 def testcoverage(surveyswath, planningpolygon):
     """
@@ -66,18 +73,18 @@ def testcoverage(surveyswath, planningpolygon):
 
     teststart = datetime.datetime.now()
 
-    #this may take a while, and return a...
+    #these functions should all return GeoJSON polygons or multipolygons
     if (re.search(".*\.xyz$", surveyswath)):
-        #returns a WKT string
+        #returns a
         surveycoverage = getpointcoverage.getpointcoverage(surveyswath)
-
+    #not tested yet
     elif (re.search(".*\.las|\.laz$", surveyswath)):
         #returns a wkt string
         surveycoverage = getpointcoverage.lascoverage(surveyswath)
-
+    # building now
     elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
         surveycoverage = getgridcoverage.tifcoverage(surveyswath)
-
+    # queued
     elif (re.search(".*\.bag|.BAG$", surveyswath)):
         surveycoverage = getgridcoverage.bagcoverage(surveyswath)
 
@@ -86,8 +93,12 @@ def testcoverage(surveyswath, planningpolygon):
     if (re.search(".*\.shp$", planningpolygon)):
         planningcoverage = getvectorcoverage.shpcoverage(planningpolygon)
 
-    elif (re.search(".*\.las|\.laz$", planningpolygon)):
+    elif (re.search(".*\.json|\.geojson$", planningpolygon)):
         planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
+
+    #create shapely geometries from geoJSON coverages
+    planningcoverage = jsontoshapely(planningcoverage)
+    surveycoverage = jsontoshapely(surveycoverage)
 
     # compute the intersection of the test and swath geometry
 
