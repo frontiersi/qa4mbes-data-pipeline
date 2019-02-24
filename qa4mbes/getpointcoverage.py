@@ -66,6 +66,7 @@ def xyzcoverage(inputfile):
     # run PDAL
     metadata = runpdal(pipeline)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
+    print(metadata)
 
     # gymnastics to convert from PDAL wkt to geoJSON
     coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
@@ -99,11 +100,16 @@ def lascoverage(inputfile):
 
     # run PDAL
     metadata = runpdal(pipeline)
-    # gymnastics to convert from PDAL wkt to geoJSON
-    coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
-    coverage = geojson.dumps(coverage)
+    if metadata:
+        print(metadata)
+        # gymnastics to convert from PDAL wkt to geoJSON
+        coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
+        coverage = geojson.dumps(coverage)
 
-    return coverage
+        return coverage
+    else:
+        return {'QAfailed': 'No CRS present',
+                'filename': inputfile}
 
 # ...if laz/las:["metadata"]["filters.hexbin"][0]["boundary"]
 

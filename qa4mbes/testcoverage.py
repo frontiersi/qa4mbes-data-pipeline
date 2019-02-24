@@ -27,11 +27,23 @@ import getvectorcoverage
 import getpointcoverage
 import getgridcoverage
 
-
-def transformtoutm(geometry):
+def guessutm(geometry):
     # lazily assume input geometry is latlon/EPSG:4326
     refpoint = geometry.centroid.xy
     utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
+    return utmzone
+
+def getsurveycoverage(inputfile):
+    """
+
+    """
+
+
+    return
+
+def latlontoutm(geometry, utmzone):
+    # lazily assume input geometry is latlon/EPSG:4326
+    refpoint = geometry.centroid.xy
     if refpoint[1][0] > 0:
         epsgcode = 'epsg:326'+str(utmzone[2])
     else:
@@ -76,20 +88,22 @@ def testcoverage(surveyswath, planningpolygon):
 
     teststart = datetime.datetime.now()
 
+
+
     # these functions should all return GeoJSON polygons or multipolygons
     if (re.search(".*\.xyz$", surveyswath)):
-        # returns a
         surveycoverage = getpointcoverage.getpointcoverage(surveyswath)
     # not tested yet
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        # returns a wkt string
         surveycoverage = getpointcoverage.lascoverage(surveyswath)
     # building now
     elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        surveycoverage = getgridcoverage.tifcoverage(surveyswath)
+        surveycoverage = getgridcoverage.tiffcoverage(surveyswath)
+
     # queued
     elif (re.search(".*\.bag|.BAG$", surveyswath)):
         surveycoverage = getgridcoverage.bagcoverage(surveyswath)
+
 
     # is input coverage a file or polygon? let's start at file, and choose
     # .shp or GeoJSON... return a shapely geometry
@@ -99,58 +113,63 @@ def testcoverage(surveyswath, planningpolygon):
     elif (re.search(".*\.json|\.geojson$", planningpolygon)):
         planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
 
-    # create shapely geometries from geoJSON coverages
-    planningcoverage = jsontoshapely(planningcoverage)
-    surveycoverage = jsontoshapely(surveycoverage)
+    if surveycoverage["QAfailed"]:
+        return surveycoverage
 
-    # compute the intersection of the test and swath geometry
-
-    testcentroid = planningcoverage.centroid.xy
-
-    surveycentroid = surveycoverage.centroid.xy
-
-    # convert the intersection to a relevant UTM zone based on test poly
-    utmplanned = transformtoutm(planningcoverage)
-    utmsurvey = transformtoutm(surveycoverage)
-
-    # compute centroid distance in metres regardless of intersection
-    centroiddistance = utmplanned.centroid.distance(utmsurvey.centroid)
-    minimumdistance = utmplanned.distance(utmsurvey)
-
-    if (planningcoverage.intersects(surveycoverage)):
-        # coverages intersect, compute the area of intersection
-        intersects = True
-        intersection = planningcoverage.intersection(surveycoverage)
-        #intersectionaswkt = intersection.wkt
-        intersectionasjson = geojson.dumps(intersection)
-
-        # intersection might be in EPSG:4326, but we want stats in metres so:
-        intersectstats = intersectinmetres(utmplanned, utmsurvey)
-
-        intersectionarea = intersectstats[0]
-        percentcoverage = intersectstats[1]
-
+    elif planningcoverage["QAfailed"]:
+        return planningcoverage
+        
+    #if there are no QA issues already, proceed:
     else:
-        intersects = False
-        intersectionasjson = None
-        intersectionarea = None
-        percentcoverage = None
 
-    teststop = datetime.datetime.now()
-    # return a dictionary, ready to write out as JSON
-    testdata = {
-        "teststart": str(teststart.isoformat()),
-        "teststop": str(teststop.isoformat()),
-        "plannedcoverage": planningpolygon,
-        "testswath": surveyswath,
-        "percentcovered": percentcoverage,
-        "areacovered": intersectionarea,
-        "centroiddistance": centroiddistance,
-        "minimindistance": minimumdistance,
-        "intersection": intersectionasjson
-    }
+        # create shapely geometries from geoJSON coverages
+        planningcoverage = jsontoshapely(planningcoverage)
+        surveycoverage = jsontoshapely(surveycoverage)
 
-    return testdata
+        utmzone = guessutm(planningcoverage)
+
+        # convert to a relevant UTM zone based on test poly
+        utmplanned = latlontoutm(planningcoverage)
+        utmsurvey = latlontoutm(surveycoverage)
+
+        # compute centroid distance in metres regardless of intersection
+        centroiddistance = utmplanned.centroid.distance(utmsurvey.centroid)
+        minimumdistance = utmplanned.distance(utmsurvey)
+
+        if (planningcoverage.intersects(surveycoverage)):
+            # coverages intersect, compute the area of intersection
+            intersects = True
+            intersection = planningcoverage.intersection(surveycoverage)
+            #intersectionaswkt = intersection.wkt
+            intersectionasjson = geojson.dumps(intersection)
+
+            # intersection might be in EPSG:4326, but we want stats in metres so:
+            intersectstats = intersectinmetres(utmplanned, utmsurvey)
+
+            intersectionarea = intersectstats[0]
+            percentcoverage = intersectstats[1]
+
+        else:
+            intersects = False
+            intersectionasjson = None
+            intersectionarea = None
+            percentcoverage = None
+
+        teststop = datetime.datetime.now()
+        # return a dictionary, ready to write out as JSON
+        testdata = {
+            "teststart": str(teststart.isoformat()),
+            "teststop": str(teststop.isoformat()),
+            "plannedcoverage": planningpolygon,
+            "testswath": surveyswath,
+            "percentcovered": percentcoverage,
+            "areacovered": intersectionarea,
+            "centroiddistance": centroiddistance,
+            "minimindistance": minimumdistance,
+            "intersection": intersectionasjson
+        }
+
+        return testdata
 
 
 if __name__ == "__main__":

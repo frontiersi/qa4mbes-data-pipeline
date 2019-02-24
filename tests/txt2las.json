@@ -1,0 +1,19 @@
+{
+      "pipeline": [
+          {
+              "type": "readers.text",
+              "header": "X\tY\tZ\tFlightllineID\tIntensity",
+              "spatialreference": "EPSG:4326",
+              "filename": "inputfile"
+          },
+          {
+              "type" : "filters.reprojection",
+              "in_srs": "EPSG:4326",
+              "out_srs": "EPSG:32755"
+          },
+          {
+              "type": "writers.las",
+              "filename": "out.laz"
+          }
+      ]
+  }

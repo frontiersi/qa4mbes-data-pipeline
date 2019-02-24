@@ -10,6 +10,7 @@ See (TBD) for gridded coverage tooling (TIFF/BAG)
 # standard library
 import os
 import json
+import geojson
 import re
 
 # do we need to parse arguments...
@@ -23,46 +24,9 @@ from shapely.ops import transform, cascaded_union
 import rasterio
 from rasterio import features
 
-import pdal
-
-
-def xyzcoverage(inputfile, header="X\tY\t\Z\tFlightllineID\tIntensity"):
-    """
-    Provide a delimited ASCII file with at least X Y and Z coordinates
-
-    Optionally provide a header line for the input data schema
-    ...and a CRS as EPSG code
-
-    ...extract a tight polygon around data points in the file
-    and return a GeoJSON polygon
-    """
-
-    # define a pipeline template
-    # to do: inspect the data format from line 1
-    # of the input file and construct 'header' appropriately
-    # OR take a header argument...
-    pipeline = {
-        "pipeline": [
-            {
-                "type": "readers.text",
-                "header": header,
-                "spatialreference": "EPSG:4326",
-                "filename": inputfile
-            },
-            {
-                "type": "filters.hexbin",
-                "threshold": 1
-            }
-        ]
-    }
-
-    # run PDAL
-    metadata = runpdal(pipeline)
-    # print(metadata)
-    coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
-    #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
-
-    return coverage
+# handling BAG
+import h5py
+import xml
 
 
 def tiffcoverage(inputfile):
@@ -71,44 +35,59 @@ def tiffcoverage(inputfile):
     -tiff/tif/TIFF/TIF
     ...extract a tight polygon around the XY points in the file
     and return a GeoJSON polygon
-
     """
     dataset = rasterio.open(inputfile)
-    boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
-    multipoly = cascaded_union(listofpolygons[:-1])
+    # check for a CRS:
+    if dataset.crs:
 
-    coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
+        # this uses gdal_polygonize to draw a boundary around contiguous values
+        # in the raster - we use the nodata mask so that our shapes are more or less
+        # 'data' and 'nodata' regions. *assumes that the geotiff is aware of it's nodata
+        # value
+        boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
+        # assemble a list of geometries from the set of boundaries
+        listofpolygons = [shape(bound[0]) for bound in boundaries]
+        # create a union of all the boundaries except the last one - which so far
+        # has been around the 'nodata' area but this is a bit of a risky assumption
+        coverage = geojson.dumps(cascaded_union(listofpolygons[:-1]))
+
+        return coverage
+
+    else:
+        return {'QAfailed': 'No CRS present',
+                'filename': inputfile}
+
+
+def bagcoverage(inputfile):
+    """
+    Provide a valid BAG (bathymetry attributed grid) with the extension
+    - .bag
+    ...extract a tight polygon around the XY points in the file
+    and return a GeoJSON polygon
+    """
+    # reference: https://salishsea-meopar-tools.readthedocs.io/en/latest/bathymetry/ExploringBagFiles.html
+    # HDF wierdness time!
+
+    # note CARIS BAG files encode metadata as arrays of single characters. ouch
+    dataset = rasterio.open(inputfile)
+    boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
+
+    coverage = geojson.dumps(cascaded_union(listofpolygons[:-1]))
 
     return coverage
 
-# ...if laz/las:["metadata"]["filters.hexbin"][0]["boundary"]
 
-# also extract CRS
-
-# if no CRS exists....
-
-# use shapely to find polygon centroid
-
-# if CRS is WGS84, use utm to find the right utm zone based on centroid
-
-# use shapely to transform the bbox
-
-# ...and then estimate the density based on npoints / area (in utm)
-
-
-def getpointcoverage(surveyswath):
+def getgridcoverage(surveyswath):
     """
     function to provide a CLI app - check file extension,
     choose a coverage exractor, return a JSON coverage
     """
-    if (re.search(".*\.xyz$", surveyswath)):
-        print("running xyzcoverage")
-        surveycoverage = xyzcoverage(surveyswath)
-    elif (re.search(".*\.las|\.laz$", surveyswath)):
-        print("running lascoverage")
-        surveycoverage = lascoverage(surveyswath)
+    if (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
+        surveycoverage = tiffcoverage(surveyswath)
+    elif (re.search(".*\.bag$", surveyswath)):
+        surveycoverage = bagcoverage(surveyswath)
     else:
-        print("please provide an ungridded .xyz or .las/laz file")
+        print("please provide a valid geotiff or BAG file")
         return
 
     return surveycoverage
@@ -125,4 +104,4 @@ if __name__ == "__main__":
 
     inputfile = vars(args)["input_file"]
 
-    getpointcoverage(inputfile)
+    getgridcoverage(inputfile)
