@@ -118,7 +118,7 @@ def testcoverage(surveyswath, planningpolygon):
 
     elif planningcoverage["QAfailed"]:
         return planningcoverage
-        
+
     #if there are no QA issues already, proceed:
     else:
 
@@ -165,7 +165,7 @@ def testcoverage(surveyswath, planningpolygon):
             "percentcovered": percentcoverage,
             "areacovered": intersectionarea,
             "centroiddistance": centroiddistance,
-            "minimindistance": minimumdistance,
+            "minimumdistance": minimumdistance,
             "intersection": intersectionasjson
         }
 
