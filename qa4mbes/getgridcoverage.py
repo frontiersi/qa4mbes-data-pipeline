@@ -68,13 +68,17 @@ def bagcoverage(inputfile):
     # reference: https://salishsea-meopar-tools.readthedocs.io/en/latest/bathymetry/ExploringBagFiles.html
     # HDF wierdness time!
 
-    # note CARIS BAG files encode metadata as arrays of single characters. ouch
-    dataset = rasterio.open(inputfile)
-    boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
+    if crsexists:
+        # note CARIS BAG files encode metadata as arrays of single characters. ouch
+        dataset = rasterio.open(inputfile)
+        boundaries = features.shapes(dataset.dataset_mask(), transform=dataset.transform)
 
-    coverage = geojson.dumps(cascaded_union(listofpolygons[:-1]))
+        coverage = geojson.dumps(cascaded_union(listofpolygons[:-1]))
 
-    return coverage
+        return coverage
+    else:
+        return {'QAfailed': 'No CRS present',
+                'filename': inputfile}
 
 
 def getgridcoverage(surveyswath):
