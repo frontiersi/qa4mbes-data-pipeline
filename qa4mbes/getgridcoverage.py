@@ -27,7 +27,27 @@ from rasterio import features
 # handling BAG
 import h5py
 from io import BytesIO
-from lxml import etree
+import xml.etree.ElementTree as ET
+
+from geotransforms import tolatlon
+
+def parsebagmetadata(bagfile):
+    #eith help fro Alex Leith
+    tree = ET.parse('metadata.xml')
+    root = tree.getroot()
+
+    namespaces = {
+        'gmd': "http://www.isotc211.org/2005/gmd",
+        'gco': "http://www.isotc211.org/2005/gco"
+    }
+
+    referencesystem = root.find('gmd:referenceSystemInfo', namespaces)[0]
+
+    referencesystemid = reference_system.find('gmd:referenceSystemIdentifier', namespaces).find('gmd:RS_Identifier', namespaces)
+
+    projstring = reference_system_id.find('gmd:code', namespaces).find('gco:CharacterString', namespaces).text
+
+
 
 
 def tiffcoverage(inputfile):
@@ -50,9 +70,14 @@ def tiffcoverage(inputfile):
         listofpolygons = [shape(bound[0]) for bound in boundaries]
         # create a union of all the boundaries except the last one - which so far
         # has been around the 'nodata' area but this is a bit of a risky assumption
-        coverage = geojson.dumps(cascaded_union(listofpolygons[:-1]))
+        coverage = cascaded_union(listofpolygons[:-1])
+        #crs to epsg should return an integer, so we can test equivalence to 4326
+        if dataset.crs.to_epsg() != 4326:
+            coverage = tolatlon(coverage, dataset.crs.to_string())
 
-        return coverage
+        dataset.close()
+
+        return geojson.dumps(coverage)
 
     else:
         return {'QAfailed': 'No CRS present',

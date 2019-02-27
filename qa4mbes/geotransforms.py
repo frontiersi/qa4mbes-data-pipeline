@@ -1,8 +1,19 @@
+import json
+import geojson
+from functools import partial
+
+# all the geospatial libraries
+from shapely import geometry, wkt
+from shapely.geometry import shape
+from shapely.ops import transform, cascaded_union
+import pyproj
 
 
 def tolatlon(geometry, projcrs):
-    # lazily assume input geometry is latlon/EPSG:4326
-    # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
+    """
+    convert non EPSG:4326 geometries to EPSG:4326
+    - needs a geometry and a proj string
+    """
     project = partial(
         pyproj.transform,
         pyproj.Proj(projcrs),  # source coordinate system
