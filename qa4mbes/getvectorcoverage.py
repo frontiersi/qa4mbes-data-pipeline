@@ -28,10 +28,11 @@ def shpcoverage(inputfile):
     #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
     with fiona.open(inputfile, 'r') as shapefile:
         geometry = shapefile[0]["geometry"]
+        thecrs = shapefile.crs
 
     coverage = str(json.dumps(geometry))
 
-    return coverage
+    return [crs, coverage]
 
 
 def jsoncoverage(inputfile):

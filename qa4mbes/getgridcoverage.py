@@ -26,7 +26,8 @@ from rasterio import features
 
 # handling BAG
 import h5py
-import xml
+from io import BytesIO
+from lxml import etree
 
 
 def tiffcoverage(inputfile):

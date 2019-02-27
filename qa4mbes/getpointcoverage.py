@@ -12,18 +12,29 @@ import os
 import json
 import geojson
 import re
+from functools import partial
 
-# do we need to parse arguments...
+# do we need to parse arguments...yes!
 from argparse import ArgumentParser
 
-# needs pdal and shapely.wkt
+# needs pdal and shapely and pyproj
 import pdal
 from shapely import wkt
+from shapely.ops import transform
+import pyproj
 
+def tolatlon(geometry, projcrs):
+    # lazily assume input geometry is latlon/EPSG:4326
+    # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(projcrs),  # source coordinate system
+        pyproj.Proj(init='epsg:4326'))  # destination coordinate system
+
+    return transform(project, geometry)
 
 def mbioreadable():
     return True
-
 
 def runpdal(pipeline):
     pipeline = pdal.Pipeline(json.dumps(pipeline))
@@ -34,7 +45,6 @@ def runpdal(pipeline):
     log = pipeline.log
 
     return metadata
-
 
 def xyzcoverage(inputfile):
     """
@@ -66,7 +76,7 @@ def xyzcoverage(inputfile):
     # run PDAL
     metadata = runpdal(pipeline)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
-    print(metadata)
+    #print(metadata)
 
     # gymnastics to convert from PDAL wkt to geoJSON
     coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
@@ -85,31 +95,51 @@ def lascoverage(inputfile):
     """
 
     # define a pipeline
-    pipeline = {
+    metapipeline = {
         "pipeline": [
             {
                 "type": "readers.las",
                 "filename": inputfile
-            },
-            {
-                "type": "filters.hexbin",
-                "threshold": 1
             }
         ]
     }
 
-    # run PDAL
-    metadata = runpdal(pipeline)
-    if metadata:
-        print(metadata)
+    metadata = runpdal(metapipeline)
+
+    if metadata["metadata"]["readers.las"][0]["srs"]["proj4"]:
+
+        srsprojstring=metadata["metadata"]["readers.las"][0]["srs"]["proj4"]
+
+        boundspipeline = {
+            "pipeline": [
+                {
+                    "type": "readers.las",
+                    "filename": inputfile
+                },
+                {
+                    "type": "filters.hexbin",
+                    "threshold": 1
+                }
+            ]
+        }
+
+        # run PDAL
+        metadata = runpdal(boundspipeline)
+
         # gymnastics to convert from PDAL wkt to geoJSON
         coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
+
+        #if the coverage is not WGS84 lat/lon:
+        if srsprojstring.find('longlat') < 0:
+
+            coverage = tolatlon(coverage, srsprojstring)
+
         coverage = geojson.dumps(coverage)
 
         return coverage
     else:
-        return {'QAfailed': 'No CRS present',
-                'filename': inputfile}
+        return json.dumps({'QAfailed': 'No CRS present',
+                'filename': inputfile})
 
 # ...if laz/las:["metadata"]["filters.hexbin"][0]["boundary"]
 
@@ -156,4 +186,4 @@ if __name__ == "__main__":
     inputfile = vars(args)["input_file"]
 
     coverage = getpointcoverage(inputfile)
-    print(coverage)
+    #print(coverage)

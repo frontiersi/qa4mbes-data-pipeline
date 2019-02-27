@@ -33,14 +33,6 @@ def guessutm(geometry):
     utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
     return utmzone
 
-def getsurveycoverage(inputfile):
-    """
-
-    """
-
-
-    return
-
 def latlontoutm(geometry, utmzone):
     # lazily assume input geometry is latlon/EPSG:4326
     refpoint = geometry.centroid.xy
@@ -113,11 +105,10 @@ def testcoverage(surveyswath, planningpolygon):
     elif (re.search(".*\.json|\.geojson$", planningpolygon)):
         planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
 
-    if surveycoverage["QAfailed"]:
-        return surveycoverage
 
-    elif planningcoverage["QAfailed"]:
-        return planningcoverage
+    #if survey coverage or planning coverage doesn't have a CRS:
+    if surveycoverage.find("QAfailed") > 0:
+        return surveycoverage
 
     #if there are no QA issues already, proceed:
     else:
@@ -129,8 +120,8 @@ def testcoverage(surveyswath, planningpolygon):
         utmzone = guessutm(planningcoverage)
 
         # convert to a relevant UTM zone based on test poly
-        utmplanned = latlontoutm(planningcoverage)
-        utmsurvey = latlontoutm(surveycoverage)
+        utmplanned = latlontoutm(planningcoverage, utmzone)
+        utmsurvey = latlontoutm(surveycoverage, utmzone)
 
         # compute centroid distance in metres regardless of intersection
         centroiddistance = utmplanned.centroid.distance(utmsurvey.centroid)
