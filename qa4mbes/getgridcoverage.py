@@ -106,7 +106,6 @@ def bagcoverage(inputfile):
         return {'QAfailed': 'No CRS present',
                 'filename': inputfile}
 
-
 def getgridcoverage(surveyswath):
     """
     function to provide a CLI app - check file extension,
