@@ -27,55 +27,15 @@ import getvectorcoverage
 import getpointcoverage
 import getgridcoverage
 
-def guessutm(geometry):
-    # lazily assume input geometry is latlon/EPSG:4326
-    refpoint = geometry.centroid.xy
-    utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
-    return utmzone
 
-def latlontoutm(geometry, utmzone):
-    # lazily assume input geometry is latlon/EPSG:4326
-    refpoint = geometry.centroid.xy
-    if refpoint[1][0] > 0:
-        epsgcode = 'epsg:326'+str(utmzone[2])
-    else:
-        epsgcode = 'epsg:327'+str(utmzone[2])
-    # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
-    project = partial(
-        pyproj.transform,
-        pyproj.Proj(init='epsg:4326'),  # source coordinate system
-        pyproj.Proj(init=epsgcode))  # destination coordinate system
-
-    return transform(project, geometry)
-
-
-def intersectinmetres(refgeom, testgeom):
+def testcoverage(surveyswath):
     """
-    give two geometries which intersect
-    return area in geometry units, and percent coverage
-    """
-    intersection = refgeom.intersection(testgeom)
+    Given asurvey swath file name, return:
+    - density of points for unstructred point data
+    - GSD for gridded data
+    - indication of whether the data and metadata match
 
-    intersectionarea = intersection.area
-    intersectionpercent = intersection.area / refgeom.area
-
-    return [intersectionarea, intersectionpercent]
-
-
-def jsontoshapely(coverage):
-    """
-    give a valid GeoJSON object, return a shapely geometry
-    """
-    coverage = geojson.loads(coverage)
-    return shape(coverage)
-
-
-def testcoverage(surveyswath, planningpolygon):
-    """
-    Given an OGR-compatible polygon and a survey swath file name, return:
-    - percentage of reference polygon covered by survey
-    - GeoJSON polygon describing intersection of reference and survey
-    - distance between reference and test coverage centroids, in metres
+    *Note QA always fails and no tests are run in the case of no CRS
     """
 
     teststart = datetime.datetime.now()
@@ -93,16 +53,6 @@ def testcoverage(surveyswath, planningpolygon):
     # queued
     elif (re.search(".*\.bag|.BAG$", surveyswath)):
         surveycoverage = getgridcoverage.bagcoverage(surveyswath)
-
-
-    # is input coverage a file or polygon? let's start at file, and choose
-    # .shp or GeoJSON... return a shapely geometry
-    if (re.search(".*\.shp$", planningpolygon)):
-        planningcoverage = getvectorcoverage.shpcoverage(planningpolygon)
-
-    elif (re.search(".*\.json|\.geojson$", planningpolygon)):
-        planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
-
 
     #if survey coverage or planning coverage doesn't have a CRS:
     if surveycoverage.find("QAfailed") > 0:
@@ -159,6 +109,12 @@ def testcoverage(surveyswath, planningpolygon):
         }
 
         return testdata
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

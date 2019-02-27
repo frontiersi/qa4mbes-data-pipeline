@@ -18,7 +18,6 @@ import fiona
 from shapely import geometry, wkt
 from shapely.geometry import shape
 
-
 def shpcoverage(inputfile):
     """
     Provide a shapefile
@@ -30,10 +29,13 @@ def shpcoverage(inputfile):
         geometry = shapefile[0]["geometry"]
         thecrs = shapefile.crs
 
-    coverage = str(json.dumps(geometry))
+    if shapefile.crs:
+        coverage = geojson.dumps(geometry)
+        return coverage
 
-    return [crs, coverage]
-
+    else:
+        return {'QAfailed': 'No CRS present',
+                'filename': inputfile}
 
 def jsoncoverage(inputfile):
     """
@@ -43,10 +45,9 @@ def jsoncoverage(inputfile):
     with fiona.open(inputfile, 'r') as jsonfile:
         geometry = jsonfile[0]["geometry"]
 
-    coverage = str(json.dumps(geometry))
+    coverage = geojson.dumps(geometry)
 
     return coverage
-
 
 def getvectorcoverage(testpolygon):
     """
@@ -62,7 +63,6 @@ def getvectorcoverage(testpolygon):
         return
 
     return testcoverage
-
 
 if __name__ == "__main__":
 

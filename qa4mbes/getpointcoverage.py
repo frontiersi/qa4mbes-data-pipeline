@@ -23,15 +23,9 @@ from shapely import wkt
 from shapely.ops import transform
 import pyproj
 
-def tolatlon(geometry, projcrs):
-    # lazily assume input geometry is latlon/EPSG:4326
-    # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
-    project = partial(
-        pyproj.transform,
-        pyproj.Proj(projcrs),  # source coordinate system
-        pyproj.Proj(init='epsg:4326'))  # destination coordinate system
+#qa4mbes parts
 
-    return transform(project, geometry)
+from geotransforms import tolatlon
 
 def mbioreadable():
     return True
