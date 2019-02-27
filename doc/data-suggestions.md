@@ -10,4 +10,8 @@ The hydography community has it's own standards and procedures, the following re
 
 ## Sizing things
 
-- share workloads. QA processing for a single, mulitple gigabyte file is harder than processing for multiple, smaller files covering the same region. The final QA'd result can be joined to a mega file later. 
+- share workloads. QA processing for a single, mulitple gigabyte file is harder than processing for multiple, smaller files covering the same region. The final QA'd result can be joined to a mega file later.
+
+## Miscellaneous
+
+- check that shapefiles, geoJSON files and geotiffs always have a CRS encoded! there is room in metadata for these.
