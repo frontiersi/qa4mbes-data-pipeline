@@ -7,6 +7,7 @@ from shapely import geometry, wkt
 from shapely.geometry import shape
 from shapely.ops import transform, cascaded_union
 import pyproj
+import utm
 
 
 def tolatlon(geometry, projcrs):

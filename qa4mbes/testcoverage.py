@@ -27,27 +27,7 @@ import getvectorcoverage
 import getpointcoverage
 import getgridcoverage
 
-def guessutm(geometry):
-    # lazily assume input geometry is latlon/EPSG:4326
-    refpoint = geometry.centroid.xy
-    utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
-    return utmzone
-
-def latlontoutm(geometry, utmzone):
-    # lazily assume input geometry is latlon/EPSG:4326
-    refpoint = geometry.centroid.xy
-    if refpoint[1][0] > 0:
-        epsgcode = 'epsg:326'+str(utmzone[2])
-    else:
-        epsgcode = 'epsg:327'+str(utmzone[2])
-    # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
-    project = partial(
-        pyproj.transform,
-        pyproj.Proj(init='epsg:4326'),  # source coordinate system
-        pyproj.Proj(init=epsgcode))  # destination coordinate system
-
-    return transform(project, geometry)
-
+from geotransforms import guessutm, latlontoutm
 
 def intersectinmetres(refgeom, testgeom):
     """
@@ -82,17 +62,17 @@ def testcoverage(surveyswath, planningpolygon):
 
     # these functions should all return GeoJSON polygons or multipolygons
     if (re.search(".*\.xyz$", surveyswath)):
-        surveycoverage = getpointcoverage.getpointcoverage(surveyswath)
+        surveycoverage = getpointcoverage.getxyzcoverage(surveyswath)
     # not tested yet
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        surveycoverage = getpointcoverage.lascoverage(surveyswath)
+        surveycoverage = getpointcoverage.getlascoverage(surveyswath)
     # building now
     elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        surveycoverage = getgridcoverage.tiffcoverage(surveyswath)
+        surveycoverage = getgridcoverage.getgdalcoverage(surveyswath)
 
     # queued
     elif (re.search(".*\.bag|.BAG$", surveyswath)):
-        surveycoverage = getgridcoverage.bagcoverage(surveyswath)
+        surveycoverage = getgridcoverage.getgdalcoverage(surveyswath)
 
 
     # is input coverage a file or polygon? let's start at file, and choose
