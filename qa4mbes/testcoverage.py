@@ -60,21 +60,7 @@ def testcoverage(surveyswath, planningpolygon):
 
     teststart = datetime.datetime.now()
 
-    # these functions should all return GeoJSON polygons or multipolygons
-    if (re.search(".*\.xyz$", surveyswath)):
-        surveycoverage = getpointcoverage.xyzcoverage(surveyswath)
-    # not tested yet
-    elif (re.search(".*\.las|\.laz$", surveyswath)):
-        surveycoverage = getpointcoverage.lascoverage(surveyswath)
-    # building now
-    elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
-
-    # queued
-    elif (re.search(".*\.bag|.BAG$", surveyswath)):
-        surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
-
-
+    # fail fast - load coverage and check for CRS
     # is input coverage a file or polygon? let's start at file, and choose
     # .shp or GeoJSON... return a shapely geometry
     if (re.search(".*\.shp$", planningpolygon)):
@@ -83,6 +69,22 @@ def testcoverage(surveyswath, planningpolygon):
     elif (re.search(".*\.json|\.geojson$", planningpolygon)):
         planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
 
+        #if survey coverage or planning coverage doesn't have a CRS:
+    if planningcoverage.find("QAfailed") > 0:
+        return planningcoverage
+
+    # these functions should all return GeoJSON polygons or multipolygons
+    if (re.search(".*\.xyz$", surveyswath)):
+        surveycoverage = getpointcoverage.xyzcoverage(surveyswath)
+
+    elif (re.search(".*\.las|\.laz$", surveyswath)):
+        surveycoverage = getpointcoverage.lascoverage(surveyswath)
+
+    elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
+        surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
+
+    elif (re.search(".*\.bag|.BAG$", surveyswath)):
+        surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
 
     #if survey coverage or planning coverage doesn't have a CRS:
     if surveycoverage.find("QAfailed") > 0:

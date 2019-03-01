@@ -34,8 +34,8 @@ def shpcoverage(inputfile):
         return coverage
 
     else:
-        return {'QAfailed': 'No CRS present',
-                'filename': inputfile}
+        return json.dumps({'QAfailed': 'No CRS present',
+                'filename': inputfile})
 
 def jsoncoverage(inputfile):
     """
