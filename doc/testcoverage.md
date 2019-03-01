@@ -19,10 +19,10 @@ If input polygon as shapefiles, or swath data as `.las`/`.laz` do not contain CR
 
 ### Caveats
 
-- XYZ files *must* be 5 tab separated columns; with the first three columns being X, Y and Z respectively (lon, lat, depth).
+- XYZ files *must* have 5 tab separated columns; with the first three columns being X, Y and Z respectively (lon, lat, depth).
 - output geometries are always expressed in `EPSG:4326` (latitude, longitude)
 - input `geoJSON` and `.xyz` files are **always** assumed to contain coordinates expressed in `EPSG:4326` (lat/lon).
 
 ### Examples:
 
-See notbook examples for [point clouds](../notebooks/pointcloudcoveragetesting.ipynb) and [grids](../notebooks/gridcoveragetesting.ipynb)
+See notebook examples for [point clouds](../notebooks/pointcloudcoveragetesting.ipynb) and [grids](../notebooks/gridcoveragetesting.ipynb)
