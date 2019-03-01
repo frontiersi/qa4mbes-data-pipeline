@@ -18,7 +18,7 @@ A proof of concept of a data pipeline for quality assurance.
 ## Instructions:
 
 ### testcoverage.py
-Assess whether a survey covers a planned region [more...](./docs/testcoverage.md)
+Assess whether a survey covers a planned region [more...](./doc/testcoverage.md)
 
 ### testresolution.py
 Assess the resolution of a survey [more...]
