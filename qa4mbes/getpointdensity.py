@@ -6,6 +6,7 @@ import json  # do json things
 import geojson  # do geojson things
 import re  # regexp
 import datetime
+import mmap
 
 # do we need to parse arguments...
 # yes! if we're calling from the CLI
@@ -26,6 +27,21 @@ import utm
 import getpointcoverage
 import geotransforms
 
+
+def mapcount(filename):
+    """
+    fast line counting, from:
+    https://stackoverflow.com/questions/845058/how-to-get-line-count-cheaply-in-python
+    """
+    f = open(filename, "r+")
+    buf = mmap.mmap(f.fileno(), 0)
+    lines = 0
+    readline = buf.readline
+    while readline():
+        lines += 1
+    return lines
+
+
 def runpdal(pipeline):
     pipeline = pdal.Pipeline(json.dumps(pipeline))
     pipeline.validate()
@@ -35,6 +51,7 @@ def runpdal(pipeline):
     log = pipeline.log
 
     return metadata
+
 
 def lasdensity(inputfile):
     """
@@ -55,11 +72,11 @@ def lasdensity(inputfile):
 
     if metadata["metadata"]["readers.las"][0]["srs"]["proj4"]:
 
-        ## get the point boundary
+        # get the point boundary
         pointcoverage = getpointcoverage.getpointcoverage(inputfile)
         pointcoverage = shape(json.loads(pointcoverage))
 
-        ## get the area of the coverage. first convert from WGS84 to utm
+        # get the area of the coverage. first convert from WGS84 to utm
         utmzone = geotransforms.guessutm(pointcoverage)
         utmcoverage = geotransforms.latlontoutm(pointcoverage, utmzone)
 
@@ -70,13 +87,13 @@ def lasdensity(inputfile):
         meandensity = covered/npoints
 
         return json.dumps({
-                            'meandensity': meandensity,
-                            'area': covered,
-                            'npoints': npoints
+            'meandensity': meandensity,
+            'area': covered,
+            'npoints': npoints
         })
     else:
         return json.dumps({'QAfailed': 'No CRS present',
-                'filename': inputfile})
+                           'filename': inputfile})
 
 
 def xyzdensity(inputfile):
@@ -88,27 +105,19 @@ def xyzdensity(inputfile):
     pointcoverage = getpointcoverage.getpointcoverage(inputfile)
     pointcoverage = shape(json.loads(pointcoverage))
 
-    ## get the area of the coverage. first convert from WGS84 to utm
-    projstring= geotransforms.guessutm(pointcoverage)
+    # get the area of the coverage. first convert from WGS84 to utm
+    projstring = geotransforms.guessutm(pointcoverage)
     print(projstring)
     utmcoverage = geotransforms.latlontoutm(pointcoverage, projstring)
 
-    # define a pipeline
-    metapipeline = {
-        "pipeline": [
-            {
-                "type": "readers.text",
-                "header": "X\tY\tZ\tFlightllineID\tIntensity",
-                "spatialreference": "EPSG:4326",
-                "filename": inputfile
-            },
-            {
-            "type": "filters.reprojection",
-            "in_srs": "EPSG:4326",
-            "out_srs": projstring
-            }
-        ]
-    }
-    metadata = runpdal(metapipeline)
+    covered = utmcoverage.area
 
-    return metadata
+    npoints = mapcount(inputfile)
+
+    meandensity = covered/npoints
+
+    return json.dumps({
+        'meandensity': meandensity,
+        'area': covered,
+        'npoints': npoints
+    })
