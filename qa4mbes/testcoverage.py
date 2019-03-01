@@ -62,17 +62,17 @@ def testcoverage(surveyswath, planningpolygon):
 
     # these functions should all return GeoJSON polygons or multipolygons
     if (re.search(".*\.xyz$", surveyswath)):
-        surveycoverage = getpointcoverage.getxyzcoverage(surveyswath)
+        surveycoverage = getpointcoverage.xyzcoverage(surveyswath)
     # not tested yet
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        surveycoverage = getpointcoverage.getlascoverage(surveyswath)
+        surveycoverage = getpointcoverage.lascoverage(surveyswath)
     # building now
     elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        surveycoverage = getgridcoverage.getgdalcoverage(surveyswath)
+        surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
 
     # queued
     elif (re.search(".*\.bag|.BAG$", surveyswath)):
-        surveycoverage = getgridcoverage.getgdalcoverage(surveyswath)
+        surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
 
 
     # is input coverage a file or polygon? let's start at file, and choose

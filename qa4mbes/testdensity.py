@@ -27,8 +27,23 @@ import getvectorcoverage
 import getpointcoverage
 import getgridcoverage
 
+from geotransforms import guessutm, latlontoutm
 
-def testcoverage(surveyswath):
+
+# eventually the following function set could be reduced top
+# 'testpdaldensity' for all PDAL readable point clouds
+# ...and 'testgdaldensity' for all GDAL readable grids
+
+
+def getgdaldensity(inputfile):
+    """
+    any GDAL-readable raster:
+    - geotiff
+    - bag
+    """
+
+
+def testdensity(density, surveyswath):
     """
     Given asurvey swath file name, return:
     - density of points for unstructred point data
@@ -42,73 +57,43 @@ def testcoverage(surveyswath):
 
     # these functions should all return GeoJSON polygons or multipolygons
     if (re.search(".*\.xyz$", surveyswath)):
-        surveycoverage = getpointcoverage.getpointcoverage(surveyswath)
+        density = getpointdensity.getxyzdensity(surveyswath)
     # not tested yet
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        surveycoverage = getpointcoverage.lascoverage(surveyswath)
+        density = getpointdensity.getlasdensity(surveyswath)
     # building now
     elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        surveycoverage = getgridcoverage.tiffcoverage(surveyswath)
+        density = getpointdensity.getgdaldensity(surveyswath)
 
-    # queued
-    elif (re.search(".*\.bag|.BAG$", surveyswath)):
-        surveycoverage = getgridcoverage.bagcoverage(surveyswath)
 
     #if survey coverage or planning coverage doesn't have a CRS:
-    if surveycoverage.find("QAfailed") > 0:
-        return surveycoverage
+    if density.find("QAfailed") > 0:
+        return density
 
     #if there are no QA issues already, proceed:
     else:
+        intersection = planningcoverage.intersection(surveycoverage)
+        #intersectionaswkt = intersection.wkt
+        intersectionasjson = geojson.dumps(intersection)
 
-        # create shapely geometries from geoJSON coverages
-        planningcoverage = jsontoshapely(planningcoverage)
-        surveycoverage = jsontoshapely(surveycoverage)
+        # intersection might be in EPSG:4326, but we want stats in metres so:
+        intersectstats = intersectinmetres(utmplanned, utmsurvey)
 
-        utmzone = guessutm(planningcoverage)
+        intersectionarea = intersectstats[0]
+        percentcoverage = intersectstats[1]
 
-        # convert to a relevant UTM zone based on test poly
-        utmplanned = latlontoutm(planningcoverage, utmzone)
-        utmsurvey = latlontoutm(surveycoverage, utmzone)
+    teststop = datetime.datetime.now()
+    # return a dictionary, ready to write out as JSON
+    testdata = {
+        "teststart": str(teststart.isoformat()),
+        "teststop": str(teststop.isoformat()),
+        "testswath": surveyswath,
+        "spacingspec": density,
+        "pointdensity": pointdensity,
+        "gridspacing": gridspacing
+    }
 
-        # compute centroid distance in metres regardless of intersection
-        centroiddistance = utmplanned.centroid.distance(utmsurvey.centroid)
-        minimumdistance = utmplanned.distance(utmsurvey)
-
-        if (planningcoverage.intersects(surveycoverage)):
-            # coverages intersect, compute the area of intersection
-            intersects = True
-            intersection = planningcoverage.intersection(surveycoverage)
-            #intersectionaswkt = intersection.wkt
-            intersectionasjson = geojson.dumps(intersection)
-
-            # intersection might be in EPSG:4326, but we want stats in metres so:
-            intersectstats = intersectinmetres(utmplanned, utmsurvey)
-
-            intersectionarea = intersectstats[0]
-            percentcoverage = intersectstats[1]
-
-        else:
-            intersects = False
-            intersectionasjson = None
-            intersectionarea = None
-            percentcoverage = None
-
-        teststop = datetime.datetime.now()
-        # return a dictionary, ready to write out as JSON
-        testdata = {
-            "teststart": str(teststart.isoformat()),
-            "teststop": str(teststop.isoformat()),
-            "plannedcoverage": planningpolygon,
-            "testswath": surveyswath,
-            "percentcovered": percentcoverage,
-            "areacovered": intersectionarea,
-            "centroiddistance": centroiddistance,
-            "minimumdistance": minimumdistance,
-            "intersection": intersectionasjson
-        }
-
-        return testdata
+    return testdata
 
 
 
