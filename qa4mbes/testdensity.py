@@ -11,29 +11,16 @@ import datetime
 # yes! if we're calling from the CLI
 from argparse import ArgumentParser
 
-# additional parts
-from shapely import geometry, wkt
-from shapely.geometry import shape
-from shapely.ops import transform
-
-import fiona
-
-from functools import partial
-import pyproj
-import utm
-
 # bespoke QA4MBES
-import getvectorcoverage
 import getpointcoverage
 import getgridcoverage
+import getpointdensity
 
 from geotransforms import guessutm, latlontoutm
-
 
 # eventually the following function set could be reduced top
 # 'testpdaldensity' for all PDAL readable point clouds
 # ...and 'testgdaldensity' for all GDAL readable grids
-
 
 def getgdaldensity(inputfile):
     """
@@ -43,7 +30,7 @@ def getgdaldensity(inputfile):
     """
 
 
-def testdensity(density, surveyswath):
+def testdensity(surveyswath):
     """
     Given asurvey swath file name, return:
     - density of points for unstructred point data
@@ -57,30 +44,31 @@ def testdensity(density, surveyswath):
 
     # these functions should all return GeoJSON polygons or multipolygons
     if (re.search(".*\.xyz$", surveyswath)):
-        density = getpointdensity.getxyzdensity(surveyswath)
+        density = getpointdensity.xyzdensity(surveyswath)
     # not tested yet
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        density = getpointdensity.getlasdensity(surveyswath)
+        density = getpointdensity.lasdensity(surveyswath)
     # building now
     elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        density = getpointdensity.getgdaldensity(surveyswath)
-
+        density = getpointdensity.gdaldensity(surveyswath)
 
     #if survey coverage or planning coverage doesn't have a CRS:
-    if density.find("QAfailed") > 0:
+    if density.find("QAfailed") > -1:
         return density
-
-    #if there are no QA issues already, proceed:
     else:
-        intersection = planningcoverage.intersection(surveycoverage)
-        #intersectionaswkt = intersection.wkt
-        intersectionasjson = geojson.dumps(intersection)
+        if density.find('meandensity') > -1:
+            density = json.loads(density)
+            pointdensity = density["meandensity"]
+            gridspacing = None
+            npoints = density["npoints"]
+            area = density["area"]
 
-        # intersection might be in EPSG:4326, but we want stats in metres so:
-        intersectstats = intersectinmetres(utmplanned, utmsurvey)
-
-        intersectionarea = intersectstats[0]
-        percentcoverage = intersectstats[1]
+        elif density.find('gridspacing') > -1:
+            density = json.loads(density)
+            pointdensity = None
+            gridspacing = density["gridspacing"]
+            npoints = density["npoints"]
+            area = density["area"]
 
     teststop = datetime.datetime.now()
     # return a dictionary, ready to write out as JSON
@@ -88,9 +76,10 @@ def testdensity(density, surveyswath):
         "teststart": str(teststart.isoformat()),
         "teststop": str(teststop.isoformat()),
         "testswath": surveyswath,
-        "spacingspec": density,
         "pointdensity": pointdensity,
-        "gridspacing": gridspacing
+        "gridspacing": gridspacing,
+        "area": area,
+        "datapoints": npoints
     }
 
     return testdata

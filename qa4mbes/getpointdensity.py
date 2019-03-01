@@ -16,9 +16,15 @@ from shapely import geometry, wkt
 from shapely.geometry import shape
 from shapely.ops import transform
 
+import pdal
+
 from functools import partial
 import pyproj
 import utm
+
+# bespoke QA4MBES
+import getpointcoverage
+import geotransforms
 
 def runpdal(pipeline):
     pipeline = pdal.Pipeline(json.dumps(pipeline))
@@ -30,7 +36,7 @@ def runpdal(pipeline):
 
     return metadata
 
-def getlasdensity(inputfile):
+def lasdensity(inputfile):
     """
     ASPRS las files
     """
@@ -50,21 +56,59 @@ def getlasdensity(inputfile):
     if metadata["metadata"]["readers.las"][0]["srs"]["proj4"]:
 
         ## get the point boundary
-        pointcoverage = getpointcoverage(inputfile)
+        pointcoverage = getpointcoverage.getpointcoverage(inputfile)
+        pointcoverage = shape(json.loads(pointcoverage))
 
-        ## get the area of the coverage
-        covered = pointcoverage.area()
+        ## get the area of the coverage. first convert from WGS84 to utm
+        utmzone = geotransforms.guessutm(pointcoverage)
+        utmcoverage = geotransforms.latlontoutm(pointcoverage, utmzone)
+
+        covered = utmcoverage.area
+
         npoints = metadata["metadata"]["readers.las"][0]["count"]
 
-        meandensity = npoints/covered
+        meandensity = covered/npoints
 
-        return meandensity
+        return json.dumps({
+                            'meandensity': meandensity,
+                            'area': covered,
+                            'npoints': npoints
+        })
     else:
         return json.dumps({'QAfailed': 'No CRS present',
                 'filename': inputfile})
 
 
-def getxyzdensity(inputfile):
+def xyzdensity(inputfile):
     """
     .xyz files (ascii point clouds or grids)
+    use PDAL because... its fast
     """
+
+    pointcoverage = getpointcoverage.getpointcoverage(inputfile)
+    pointcoverage = shape(json.loads(pointcoverage))
+
+    ## get the area of the coverage. first convert from WGS84 to utm
+    projstring= geotransforms.guessutm(pointcoverage)
+    print(projstring)
+    utmcoverage = geotransforms.latlontoutm(pointcoverage, projstring)
+
+    # define a pipeline
+    metapipeline = {
+        "pipeline": [
+            {
+                "type": "readers.text",
+                "header": "X\tY\tZ\tFlightllineID\tIntensity",
+                "spatialreference": "EPSG:4326",
+                "filename": inputfile
+            },
+            {
+            "type": "filters.reprojection",
+            "in_srs": "EPSG:4326",
+            "out_srs": projstring
+            }
+        ]
+    }
+    metadata = runpdal(metapipeline)
+
+    return metadata

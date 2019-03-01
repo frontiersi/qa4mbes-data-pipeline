@@ -26,19 +26,20 @@ def guessutm(geometry):
     # lazily assume input geometry is latlon/EPSG:4326
     refpoint = geometry.centroid.xy
     utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
-    return utmzone
-
-def latlontoutm(geometry, utmzone):
-    # lazily assume input geometry is latlon/EPSG:4326
-    refpoint = geometry.centroid.xy
-    if refpoint[1][0] > 0:
-        epsgcode = 'epsg:326'+str(utmzone[2])
+    if refpoint[1][0] >= 0:
+        projstring = '+proj=utm +zone='+str(utmzone[2])+' +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs'
     else:
-        epsgcode = 'epsg:327'+str(utmzone[2])
+        projstring = '+proj=utm +zone='+str(utmzone[2])+' +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs'
+
+    return projstring
+
+def latlontoutm(geometry, projstring):
+    # lazily assume input geometry is latlon/EPSG:4326
+
     # from: https://gis.stackexchange.com/questions/127427/transforming-shapely-polygon-and-multipolygon-objects
     project = partial(
         pyproj.transform,
         pyproj.Proj(init='epsg:4326'),  # source coordinate system
-        pyproj.Proj(init=epsgcode))  # destination coordinate system
+        pyproj.Proj(projstring))  # destination coordinate system
 
     return transform(project, geometry)
