@@ -17,6 +17,7 @@ import rasterio
 from shapely import geometry
 from shapely.geometry import shape
 from shapely.ops import transform
+import numpy as np
 
 import pdal
 
@@ -50,9 +51,9 @@ def gdaldensity(inputfile):
         return json.dumps({
             'xspacing': xspacing,
             'yspacing': yspacing,
-            'meandensity': meandesity,
+            'meandensity': meandensity,
             'area': covered,
-            'npoints': npoints
+            'npoints': datapixels
         })
 
     else:

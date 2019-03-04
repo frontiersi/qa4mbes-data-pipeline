@@ -102,7 +102,7 @@ def xyzdensity(inputfile):
 
     # get the area of the coverage. first convert from WGS84 to utm
     projstring = geotransforms.guessutm(pointcoverage)
-    print(projstring)
+
     utmcoverage = geotransforms.latlontoutm(pointcoverage, projstring)
 
     covered = utmcoverage.area
