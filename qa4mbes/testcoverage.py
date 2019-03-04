@@ -29,6 +29,7 @@ import getgridcoverage
 
 from geotransforms import guessutm, latlontoutm
 
+
 def intersectinmetres(refgeom, testgeom):
     """
     give two geometries which intersect
@@ -69,7 +70,7 @@ def testcoverage(surveyswath, planningpolygon):
     elif (re.search(".*\.json|\.geojson$", planningpolygon)):
         planningcoverage = getvectorcoverage.jsoncoverage(planningpolygon)
 
-        #if survey coverage or planning coverage doesn't have a CRS:
+        # if survey coverage or planning coverage doesn't have a CRS:
     if planningcoverage.find("QAfailed") > 0:
         return planningcoverage
 
@@ -86,11 +87,11 @@ def testcoverage(surveyswath, planningpolygon):
     elif (re.search(".*\.bag|.BAG$", surveyswath)):
         surveycoverage = getgridcoverage.gdalcoverage(surveyswath)
 
-    #if survey coverage or planning coverage doesn't have a CRS:
+    # if survey coverage or planning coverage doesn't have a CRS:
     if surveycoverage.find("QAfailed") > 0:
         return surveycoverage
 
-    #if there are no QA issues already, proceed:
+    # if there are no QA issues already, proceed:
     else:
 
         # create shapely geometries from geoJSON coverages

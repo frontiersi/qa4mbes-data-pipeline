@@ -23,12 +23,10 @@ from shapely import wkt
 from shapely.ops import transform
 import pyproj
 
-#qa4mbes parts
+# qa4mbes parts
 
 from geotransforms import tolatlon
 
-def mbioreadable():
-    return True
 
 def runpdal(pipeline):
     pipeline = pdal.Pipeline(json.dumps(pipeline))
@@ -39,6 +37,7 @@ def runpdal(pipeline):
     log = pipeline.log
 
     return metadata
+
 
 def xyzcoverage(inputfile):
     """
@@ -70,7 +69,7 @@ def xyzcoverage(inputfile):
     # run PDAL
     metadata = runpdal(pipeline)
     coverage = metadata["metadata"]["filters.hexbin"][0]["boundary"]
-    #print(metadata)
+    # print(metadata)
 
     # gymnastics to convert from PDAL wkt to geoJSON
     coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
@@ -102,7 +101,7 @@ def lascoverage(inputfile):
 
     if metadata["metadata"]["readers.las"][0]["srs"]["proj4"]:
 
-        srsprojstring=metadata["metadata"]["readers.las"][0]["srs"]["proj4"]
+        srsprojstring = metadata["metadata"]["readers.las"][0]["srs"]["proj4"]
 
         boundspipeline = {
             "pipeline": [
@@ -123,7 +122,7 @@ def lascoverage(inputfile):
         # gymnastics to convert from PDAL wkt to geoJSON
         coverage = wkt.loads(metadata["metadata"]["filters.hexbin"][0]["boundary"])
 
-        #if the coverage is not WGS84 lat/lon:
+        # if the coverage is not WGS84 lat/lon:
         if srsprojstring.find('longlat') < 0:
 
             coverage = tolatlon(coverage, srsprojstring)
@@ -133,21 +132,7 @@ def lascoverage(inputfile):
         return coverage
     else:
         return json.dumps({'QAfailed': 'No CRS present',
-                'filename': inputfile})
-
-# ...if laz/las:["metadata"]["filters.hexbin"][0]["boundary"]
-
-# also extract CRS
-
-# if no CRS exists....
-
-# use shapely to find polygon centroid
-
-# if CRS is WGS84, use utm to find the right utm zone based on centroid
-
-# use shapely to transform the bbox
-
-# ...and then estimate the density based on npoints / area (in utm)
+                           'filename': inputfile})
 
 
 def getpointcoverage(surveyswath):
@@ -179,5 +164,4 @@ if __name__ == "__main__":
 
     inputfile = vars(args)["input_file"]
 
-    coverage = getpointcoverage(inputfile)
-    #print(coverage)
+    getpointcoverage(inputfile)

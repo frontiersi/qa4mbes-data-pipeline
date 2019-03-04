@@ -13,15 +13,11 @@ import mmap
 from argparse import ArgumentParser
 
 # additional parts
-from shapely import geometry, wkt
+from shapely import geometry
 from shapely.geometry import shape
 from shapely.ops import transform
 
 import pdal
-
-from functools import partial
-import pyproj
-import utm
 
 # bespoke QA4MBES
 import getpointcoverage
@@ -99,7 +95,6 @@ def lasdensity(inputfile):
 def xyzdensity(inputfile):
     """
     .xyz files (ascii point clouds or grids)
-    use PDAL because... its fast
     """
 
     pointcoverage = getpointcoverage.getpointcoverage(inputfile)
@@ -121,3 +116,35 @@ def xyzdensity(inputfile):
         'area': covered,
         'npoints': npoints
     })
+
+
+def getpointdensity(surveyswath):
+    """
+    function to provide a CLI app - check file extension,
+    choose a coverage exractor, return a JSON coverage
+    """
+    if (re.search(".*\.xyz$", surveyswath)):
+        #print("running xyzcoverage")
+        surveydensity = xyzdensity(surveyswath)
+    elif (re.search(".*\.las|\.laz$", surveyswath)):
+        #print("running lascoverage")
+        surveydensity = lasdensity(surveyswath)
+    else:
+        print("please provide an ASCII .xyz or .las/laz file")
+        return
+
+    return surveydensity
+
+
+if __name__ == "__main__":
+
+    parser = ArgumentParser()
+    parser.add_argument("-i", "--input-file",
+                        help="input file for density extraction")
+
+    # unpack arguments
+    args = parser.parse_args()
+
+    inputfile = vars(args)["input_file"]
+
+    coverage = getpointdensity(inputfile)
