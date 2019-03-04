@@ -23,6 +23,7 @@ from geotransforms import guessutm, latlontoutm
 # 'testpdaldensity' for all PDAL readable point clouds
 # ...and 'testgdaldensity' for all GDAL readable grids
 
+
 def testdensity(surveyswath):
     """
     Given asurvey swath file name, return:
@@ -45,7 +46,7 @@ def testdensity(surveyswath):
     elif (re.search(".*\.tif|\.TIF|\.tiff|\.bag|\.BAG$", surveyswath)):
         density = getgriddensity.gdaldensity(surveyswath)
 
-    #if survey coverage or planning coverage doesn't have a CRS:
+    # if survey coverage or planning coverage doesn't have a CRS:
     if density.find("QAfailed") > -1:
         return density
 
@@ -61,7 +62,7 @@ def testdensity(surveyswath):
             density = json.loads(density)
             meandensity = density["meandensity"]
             xspacing = None
-            yspacing= None
+            yspacing = None
             npoints = density["npoints"]
             area = density["area"]
 
@@ -79,6 +80,7 @@ def testdensity(surveyswath):
     }
 
     return testdata
+
 
 if __name__ == "__main__":
     # cli handling parts -

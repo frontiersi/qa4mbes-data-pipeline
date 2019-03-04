@@ -31,6 +31,7 @@ import xml.etree.ElementTree as ET
 
 from geotransforms import tolatlon
 
+
 def gdalcoverage(inputfile):
     """
     Provide a valid geotiff file name with extension:
@@ -62,7 +63,7 @@ def gdalcoverage(inputfile):
 
     else:
         return json.dumps({'QAfailed': 'No CRS present',
-                'filename': inputfile})
+                           'filename': inputfile})
 
 
 def getgridcoverage(surveyswath):

@@ -22,16 +22,20 @@ def tolatlon(geometry, projcrs):
 
     return transform(project, geometry)
 
+
 def guessutm(geometry):
     # lazily assume input geometry is latlon/EPSG:4326
     refpoint = geometry.centroid.xy
     utmzone = utm.from_latlon(refpoint[1][0], refpoint[0][0])
     if refpoint[1][0] >= 0:
-        projstring = '+proj=utm +zone='+str(utmzone[2])+' +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs'
+        projstring = '+proj=utm +zone=' + \
+            str(utmzone[2])+' +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs'
     else:
-        projstring = '+proj=utm +zone='+str(utmzone[2])+' +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs'
+        projstring = '+proj=utm +zone=' + \
+            str(utmzone[2])+' +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs'
 
     return projstring
+
 
 def latlontoutm(geometry, projstring):
     # lazily assume input geometry is latlon/EPSG:4326

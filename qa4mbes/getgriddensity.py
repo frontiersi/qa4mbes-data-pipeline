@@ -25,6 +25,7 @@ import pdal
 import getgridcoverage
 import geotransforms
 
+
 def gdaldensity(inputfile):
     """
     ASPRS las files
@@ -59,7 +60,8 @@ def gdaldensity(inputfile):
 
     else:
         return json.dumps({'QAfailed': 'No CRS present',
-                'filename': inputfile})
+                           'filename': inputfile})
+
 
 def getgriddensity(surveyswath):
     """

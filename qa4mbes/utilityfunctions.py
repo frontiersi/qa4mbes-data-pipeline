@@ -25,7 +25,6 @@ def getbagcrs(metadata):
         return False
 
 
-
 """
 def bagcoverage(inputfile):
 """
