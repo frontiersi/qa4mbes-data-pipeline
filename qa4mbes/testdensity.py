@@ -15,20 +15,13 @@ from argparse import ArgumentParser
 import getpointcoverage
 import getgridcoverage
 import getpointdensity
+import getgriddensity
 
 from geotransforms import guessutm, latlontoutm
 
 # eventually the following function set could be reduced top
 # 'testpdaldensity' for all PDAL readable point clouds
 # ...and 'testgdaldensity' for all GDAL readable grids
-
-def getgdaldensity(inputfile):
-    """
-    any GDAL-readable raster:
-    - geotiff
-    - bag
-    """
-
 
 def testdensity(surveyswath):
     """
@@ -49,24 +42,26 @@ def testdensity(surveyswath):
     elif (re.search(".*\.las|\.laz$", surveyswath)):
         density = getpointdensity.lasdensity(surveyswath)
     # building now
-    elif (re.search(".*\.tif|\.TIF|\.tiff$", surveyswath)):
-        density = getpointdensity.gdaldensity(surveyswath)
+    elif (re.search(".*\.tif|\.TIF|\.tiff|\.bag|\.BAG$", surveyswath)):
+        density = getgriddensity.gdaldensity(surveyswath)
 
     #if survey coverage or planning coverage doesn't have a CRS:
     if density.find("QAfailed") > -1:
         return density
+
     else:
-        if density.find('meandensity') > -1:
+        if density.find('xspacing') > -1:
             density = json.loads(density)
-            pointdensity = density["meandensity"]
-            gridspacing = None
+            meandensity = density["meandensity"]
+            xspacing = density["xspacing"]
+            yspacing = density["yspacing"]
             npoints = density["npoints"]
             area = density["area"]
-
-        elif density.find('gridspacing') > -1:
+        else:
             density = json.loads(density)
-            pointdensity = None
-            gridspacing = density["gridspacing"]
+            meandensity = density["meandensity"]
+            xspacing = None
+            yspacing= None
             npoints = density["npoints"]
             area = density["area"]
 
@@ -76,20 +71,14 @@ def testdensity(surveyswath):
         "teststart": str(teststart.isoformat()),
         "teststop": str(teststop.isoformat()),
         "testswath": surveyswath,
-        "pointdensity": pointdensity,
-        "gridspacing": gridspacing,
+        "meandensity": meandensity,
+        "xspacing": xspacing,
+        "yspacing": yspacing,
         "area": area,
         "datapoints": npoints
     }
 
     return testdata
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     # cli handling parts -

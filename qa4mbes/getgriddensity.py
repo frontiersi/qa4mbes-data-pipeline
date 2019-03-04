@@ -45,7 +45,8 @@ def gdaldensity(inputfile):
         utmcoverage = geotransforms.latlontoutm(coverage, utmzone)
 
         covered = utmcoverage.area
-        datapixels = len(np.ravel(np.where(dataset.dataset_mask() > 0)))
+        mask = dataset.dataset_mask()
+        datapixels = mask[mask > 0].shape[0]
         meandensity = covered/datapixels
 
         return json.dumps({
@@ -60,6 +61,21 @@ def gdaldensity(inputfile):
         return json.dumps({'QAfailed': 'No CRS present',
                 'filename': inputfile})
 
+def getgriddensity(surveyswath):
+    """
+    function to provide a CLI app - check file extension,
+    choose a coverage exractor, return a JSON coverage
+    """
+    if (re.search(".*\.tif|\.TIF|\.tiff|\.bag|\.BAG$", surveyswath)):
+        density = gdaldensity(surveyswath)
+    else:
+        print("please provide a gridded geotiff or BAG \
+               file (tif/.tiff/.TIF/.TIFF/.bag/.BAG)")
+        return
+
+    return surveydensity
+
+
 if __name__ == "__main__":
 
     parser = ArgumentParser()
@@ -71,4 +87,4 @@ if __name__ == "__main__":
 
     inputfile = vars(args)["input_file"]
 
-    coverage = getpointdensity(inputfile)
+    coverage = getgriddensity(inputfile)
