@@ -1,0 +1,14 @@
+name: qa4mbes
+channels:
+  - conda-forge
+dependencies:
+  - fiona
+  - geojson
+  - jupyter
+  - numpy
+  - pdal
+  - pyproj
+  - python=3.6
+  - rasterio
+  - shapely
+  - utm
