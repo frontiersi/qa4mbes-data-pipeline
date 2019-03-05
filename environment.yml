@@ -9,6 +9,7 @@ dependencies:
   - pdal
   - pyproj
   - python=3.6
+  - python-pdal
   - rasterio
   - shapely
   - utm

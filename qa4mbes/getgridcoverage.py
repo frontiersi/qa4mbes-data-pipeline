@@ -24,11 +24,6 @@ from shapely.ops import transform, cascaded_union
 import rasterio
 from rasterio import features
 
-# handling BAG
-import h5py
-from io import BytesIO
-import xml.etree.ElementTree as ET
-
 from geotransforms import tolatlon
 
 
@@ -55,7 +50,7 @@ def gdalcoverage(inputfile):
         coverage = cascaded_union(listofpolygons[:-1])
         # crs to epsg should return an integer, so we can test equivalence to 4326
         if dataset.crs.to_epsg() != 4326:
-            coverage = tolatlon(coverage, dataset.crs.to_string())
+            coverage = tolatlon(coverage, dataset.crs.to_proj4())
 
         dataset.close()
 

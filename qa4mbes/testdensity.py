@@ -27,7 +27,7 @@ from geotransforms import guessutm, latlontoutm
 def testdensity(surveyswath):
     """
     Given asurvey swath file name, return:
-    - density of points for unstructred point data
+    - density of points for unstructured point data
     - GSD for gridded data
     - indication of whether the data and metadata match
 
