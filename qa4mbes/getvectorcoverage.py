@@ -35,6 +35,7 @@ def shpcoverage(inputfile):
         return coverage
 
     else:
+        # return QA failed if there's no CRS
         return json.dumps({'QAfailed': 'No CRS present',
                            'filename': inputfile})
 

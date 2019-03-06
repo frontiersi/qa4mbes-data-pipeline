@@ -1,0 +1,2 @@
++init=epsg:32755
+{'teststart': '2019-03-06T14:33:42.884431', 'teststop': '2019-03-06T14:34:06.838276', 'testswath': '../test-grids/bag/grid1_ellipsoid_1m.bag', 'meandensity': 1.0011164647592832, 'xspacing': 1.000153846153848, 'yspacing': 1.000152671755718, 'area': 17587152.538200833, 'datapoints': 17567539}

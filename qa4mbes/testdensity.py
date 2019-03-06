@@ -89,17 +89,13 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input-file",
                         help="input filename for coverage extraction")
 
-    parser.add_argument("-r", "--referencepolygon",
-                        help="refernce polygon filename")
-
     # input CRS for each should also nbe options... coming!
 
     # unpack arguments
     args = parser.parse_args()
 
     inputfile = vars(args)["input_file"]
-    referencepolygon = vars(args)["referencepolygon"]
 
-    testdata = testcoverage(inputfile, referencepolygon)
-    # spit JSON to stdout as a CLI output
-    print(testdata)
+    density = testdensity(inputfile)
+
+    print(density)

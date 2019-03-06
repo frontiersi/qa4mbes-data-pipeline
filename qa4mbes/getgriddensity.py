@@ -19,8 +19,6 @@ from shapely.geometry import shape
 from shapely.ops import transform
 import numpy as np
 
-import pdal
-
 # bespoke QA4MBES
 import getgridcoverage
 import geotransforms
@@ -59,6 +57,7 @@ def gdaldensity(inputfile):
         })
 
     else:
+        # return QA failed if there's no CRS
         return json.dumps({'QAfailed': 'No CRS present',
                            'filename': inputfile})
 

@@ -88,6 +88,7 @@ def lasdensity(inputfile):
             'npoints': npoints
         })
     else:
+        # return QA failed if there's no CRS
         return json.dumps({'QAfailed': 'No CRS present',
                            'filename': inputfile})
 
