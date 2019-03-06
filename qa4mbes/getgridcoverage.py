@@ -51,6 +51,7 @@ def gdalcoverage(inputfile):
         # crs to epsg should return an integer, so we can test equivalence to 4326
         if dataset.crs.to_epsg() != 4326:
             coverage = tolatlon(coverage, dataset.crs.to_proj4())
+            print(dataset.crs.to_proj4())
 
         dataset.close()
 

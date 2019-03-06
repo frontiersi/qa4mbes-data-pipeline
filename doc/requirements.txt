@@ -1,9 +1,10 @@
 # QA4MBES python requirements from outside the py3.7 standard library
 
-shapely
 fiona
-rasterio
+geojson
 numpy
-pdal > 1.6
-utm
+pdal
 pyproj
+rasterio
+shapely
+utm

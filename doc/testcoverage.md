@@ -1,6 +1,9 @@
 ## Running coverage tests
 
 `testcoverage` checks whether the bounding polygon of a survey swath intersects a planned survey region. If so, it returns:
+
+- test start time
+- test stop time
 - planning polygon file name
 - test swath file name
 - percentage of planning area covered by swath
@@ -13,7 +16,7 @@ If the regions don't intersect at all, the `percentage`, `area` and `geometry` v
 
 If input polygon as shapefiles, or swath data as `.las`/`.laz` do not contain CRS information, a `QA failed` message is given, with the file name missing CRS information.
 
-`testcoverage.py` currently works for `.xyz` and `'as/laz` ungridded swath files and `.shp` or `.geoJSON` reference polygons:
+`testcoverage.py` currently works for `.xyz` and `las/laz` ungridded swath files; `tif/tiff` and `bag` gridded formats, using `.shp` or `.geoJSON` reference polygons:
 
 `python qa4mbes/testcoverage.py -i "tests/4819-100000lines.xyz" -r "tests/testcoverage.shp"`
 

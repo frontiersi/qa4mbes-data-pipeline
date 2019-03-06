@@ -2,12 +2,14 @@
 A proof of concept of a data pipeline for quality assurance.
 
 ## Python requirements outside of the Python 3 standard library:
+
+- pdal (http://pdal.io)
+- pyproj
 - shapely
 - rasterio
-- pdal (http://pdal.io)
+- utm
 
-## External software not used as a Python library
-- MB-System: https://www.mbari.org/products/research-software/mb-system/
+See [environment.yml](./environment.yml) for the conda environment setup used to run the code here. A [requirements.txt](./doc/requirements.txt) file is also available.
 
 ## Structure of this repository
 `./doc` contains documentation as markdown
@@ -21,7 +23,4 @@ A proof of concept of a data pipeline for quality assurance.
 Assess whether a survey covers a planned region [more...](./doc/testcoverage.md)
 
 ### testresolution.py
-Assess the resolution of a survey [more...]
-
-### testgridresolution.py
-Assess the resolution of gridded data files [more...]
+Assess the resolution of a survey [more...](./doc/testdensity.md)

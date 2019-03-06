@@ -5,6 +5,7 @@ dependencies:
   - fiona
   - geojson
   - jupyter
+  - matplotlib
   - numpy
   - pdal
   - pyproj
