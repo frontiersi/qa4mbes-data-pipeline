@@ -1,10 +1,11 @@
-# QA4MBES python requirements from outside the py3.7 standard library
-
+# QA4MBES python requirements from outside the py3.6 standard library
+# many dependencies (GDAL etc) will be installed alongside the packages
+# listed here
 fiona
 geojson
 numpy
 pdal
 pyproj
-rasterio
+rasterio>=1.0.21
 shapely
 utm

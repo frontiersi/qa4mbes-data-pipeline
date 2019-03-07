@@ -22,5 +22,5 @@ See [environment.yml](./environment.yml) for the conda environment setup used to
 ### testcoverage.py
 Assess whether a survey covers a planned region [more...](./doc/testcoverage.md)
 
-### testresolution.py
-Assess the resolution of a survey [more...](./doc/testdensity.md)
+### testdensity.py
+Assess the density of a survey [more...](./doc/testdensity.md)
