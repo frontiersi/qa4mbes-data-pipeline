@@ -30,8 +30,6 @@ def gdaldensity(inputfile):
     """
     dataset = rasterio.open(inputfile)
     if dataset.crs:
-        bbox = dataset.bounds
-
         xspacing = (dataset.bounds[2] - dataset.bounds[0]) / dataset.width
         yspacing = (dataset.bounds[3] - dataset.bounds[1]) / dataset.height
 
