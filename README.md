@@ -24,3 +24,19 @@ Assess whether a survey covers a planned region [more...](./doc/testcoverage.md)
 
 ### testdensity.py
 Assess the density of a survey [more...](./doc/testdensity.md)
+
+# Docker instructions
+* Build: `docker-compose build`
+* Run example 1: 
+```
+docker-compose run qa4mbes \
+    python3 qa4mbes/gridcoverages/testcoverage.py \
+    -i "tests/xyzdata/4819-100000lines.xyz" \
+    -r "tests/testcoverage.shp"
+```
+* Run exmple 2:
+```
+docker-compose run qa4mbes \
+    python3 qa4mbes/testdensity.py \
+    -i "tests/xyzdata/4819-100000lines.xyz"
+```
