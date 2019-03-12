@@ -15,7 +15,7 @@ As for `testcoverage.py`, the test will fail if the input data should hold CRS m
 
 `testdensity.py` currently works for `.xyz` and `las/laz` ungridded swath files and `.tiff` or `.bag` gridded files:
 
-`python qa4mbes/testdensity.py -i "tests/4819-100000lines.xyz"`
+`python qa4mbes/testdensity.py -i "tests/xyzdata/4819-100000lines.xyz"`
 
 ### Caveats
 

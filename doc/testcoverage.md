@@ -18,7 +18,7 @@ If input polygon as shapefiles, or swath data as `.las`/`.laz` do not contain CR
 
 `testcoverage.py` currently works for `.xyz` and `las/laz` ungridded swath files; `tif/tiff` and `bag` gridded formats, using `.shp` or `.geoJSON` reference polygons:
 
-`python qa4mbes/testcoverage.py -i "tests/4819-100000lines.xyz" -r "tests/testcoverage.shp"`
+`python qa4mbes/testcoverage.py -i "tests/xyzdata/4819-100000lines.xyz" -r "tests/gridcoverages/testcoverage.shp"`
 
 ### Caveats
 
