@@ -125,10 +125,8 @@ def getpointdensity(surveyswath):
     choose a coverage exractor, return a JSON coverage
     """
     if (re.search(".*\.xyz$", surveyswath)):
-        #print("running xyzcoverage")
         surveydensity = xyzdensity(surveyswath)
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        #print("running lascoverage")
         surveydensity = lasdensity(surveyswath)
     else:
         print("please provide an ASCII .xyz or .las/laz file")
