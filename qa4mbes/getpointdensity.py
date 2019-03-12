@@ -42,9 +42,9 @@ def runpdal(pipeline):
     pipeline = pdal.Pipeline(json.dumps(pipeline))
     pipeline.validate()
     pipeline.loglevel = 2  # stay quiet
-    count = pipeline.execute()
+    pipeline.execute()
     metadata = json.loads(pipeline.metadata)
-    log = pipeline.log
+    pipeline.log
 
     return metadata
 
