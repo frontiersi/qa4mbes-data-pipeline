@@ -30,8 +30,6 @@ def gdaldensity(inputfile):
     """
     dataset = rasterio.open(inputfile)
     if dataset.crs:
-        bbox = dataset.bounds
-
         xspacing = (dataset.bounds[2] - dataset.bounds[0]) / dataset.width
         yspacing = (dataset.bounds[3] - dataset.bounds[1]) / dataset.height
 
@@ -67,12 +65,13 @@ def getgriddensity(surveyswath):
     function to provide a CLI app - check file extension,
     choose a coverage exractor, return a JSON coverage
     """
+
+    surveydensity = None
     if (re.search(".*\.tif|\.TIF|\.tiff|\.bag|\.BAG$", surveyswath)):
-        density = gdaldensity(surveyswath)
+        surveydensity = gdaldensity(surveyswath)
     else:
         print("please provide a gridded geotiff or BAG \
                file (tif/.tiff/.TIF/.TIFF/.bag/.BAG)")
-        return
 
     return surveydensity
 

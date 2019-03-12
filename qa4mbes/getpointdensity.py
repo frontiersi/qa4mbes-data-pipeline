@@ -42,9 +42,9 @@ def runpdal(pipeline):
     pipeline = pdal.Pipeline(json.dumps(pipeline))
     pipeline.validate()
     pipeline.loglevel = 2  # stay quiet
-    count = pipeline.execute()
+    pipeline.execute()
     metadata = json.loads(pipeline.metadata)
-    log = pipeline.log
+    pipeline.log
 
     return metadata
 
@@ -125,10 +125,8 @@ def getpointdensity(surveyswath):
     choose a coverage exractor, return a JSON coverage
     """
     if (re.search(".*\.xyz$", surveyswath)):
-        #print("running xyzcoverage")
         surveydensity = xyzdensity(surveyswath)
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        #print("running lascoverage")
         surveydensity = lasdensity(surveyswath)
     else:
         print("please provide an ASCII .xyz or .las/laz file")

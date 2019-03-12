@@ -67,6 +67,7 @@ def testdensity(surveyswath):
             area = density["area"]
 
     teststop = datetime.datetime.now()
+
     # return a dictionary, ready to write out as JSON
     testdata = {
         "teststart": str(teststart.isoformat()),

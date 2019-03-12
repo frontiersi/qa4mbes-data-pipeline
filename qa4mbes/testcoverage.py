@@ -110,24 +110,20 @@ def testcoverage(surveyswath, planningpolygon):
 
         if (planningcoverage.intersects(surveycoverage)):
             # coverages intersect, compute the area of intersection
-            intersects = True
             intersection = planningcoverage.intersection(surveycoverage)
-            #intersectionaswkt = intersection.wkt
             intersectionasjson = geojson.dumps(intersection)
 
             # intersection might be in EPSG:4326, but we want stats in metres so:
             intersectstats = intersectinmetres(utmplanned, utmsurvey)
-
             intersectionarea = intersectstats[0]
             percentcoverage = intersectstats[1]
-
         else:
-            intersects = False
             intersectionasjson = None
             intersectionarea = None
             percentcoverage = None
 
         teststop = datetime.datetime.now()
+
         # return a dictionary, ready to write out as JSON
         testdata = {
             "teststart": str(teststart.isoformat()),

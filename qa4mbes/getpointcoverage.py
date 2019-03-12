@@ -142,10 +142,8 @@ def getpointcoverage(surveyswath):
     choose a coverage exractor, return a JSON coverage
     """
     if (re.search(".*\.xyz$", surveyswath)):
-        #print("running xyzcoverage")
         surveycoverage = xyzcoverage(surveyswath)
     elif (re.search(".*\.las|\.laz$", surveyswath)):
-        #print("running lascoverage")
         surveycoverage = lascoverage(surveyswath)
     else:
         print("please provide an ASCII .xyz or .las/laz file")

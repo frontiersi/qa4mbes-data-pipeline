@@ -28,12 +28,10 @@ def shpcoverage(inputfile):
     #crs = metadata["metadata"]["readers.text"][0]["srs"]["prettywkt"]
     with fiona.open(inputfile, 'r') as shapefile:
         geometry = shapefile[0]["geometry"]
-        thecrs = shapefile.crs
 
     if shapefile.crs:
         coverage = geojson.dumps(geometry)
         return coverage
-
     else:
         # return QA failed if there's no CRS
         return json.dumps({'QAfailed': 'No CRS present',
