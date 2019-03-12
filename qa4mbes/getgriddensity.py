@@ -67,12 +67,13 @@ def getgriddensity(surveyswath):
     function to provide a CLI app - check file extension,
     choose a coverage exractor, return a JSON coverage
     """
+
+    surveydensity = None
     if (re.search(".*\.tif|\.TIF|\.tiff|\.bag|\.BAG$", surveyswath)):
-        density = gdaldensity(surveyswath)
+        surveydensity = gdaldensity(surveyswath)
     else:
         print("please provide a gridded geotiff or BAG \
                file (tif/.tiff/.TIF/.TIFF/.bag/.BAG)")
-        return
 
     return surveydensity
 
