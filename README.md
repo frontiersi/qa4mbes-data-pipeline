@@ -30,11 +30,11 @@ Assess the density of a survey [more...](./doc/testdensity.md)
 * Run example 1: 
 ```
 docker-compose run qa4mbes \
-    python3 qa4mbes/gridcoverages/testcoverage.py \
+    python3 qa4mbes/testcoverage.py \
     -i "tests/xyzdata/4819-100000lines.xyz" \
-    -r "tests/testcoverage.shp"
+    -r "tests/gridcoverages/testcoverage.shp"
 ```
-* Run exmple 2:
+* Run example 2:
 ```
 docker-compose run qa4mbes \
     python3 qa4mbes/testdensity.py \
