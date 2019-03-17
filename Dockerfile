@@ -10,6 +10,8 @@ ENV PATH /opt/conda/envs/env/bin:$PATH
 RUN mkdir -p /workdir
 WORKDIR /workdir
 
+ENV PYTHONPATH "${PYTHONPATH}:/workdir/qa4mbes"
+
 # Force the use of the conda environment
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD pdal --version
+CMD jupyter notebook --ip=0.0.0.0  --allow-root
